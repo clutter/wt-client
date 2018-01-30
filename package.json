@@ -1,0 +1,54 @@
+{
+  "name": "@clutter/wt",
+  "version": "0.0.1",
+  "scripts": {
+    "clean": "rimraf lib",
+    "test": "cross-env BABEL_ENV=commonjs mocha test/index --compilers js:@babel/register --recursive",
+    "memory": "@babel/node test/memory-leak-check",
+    "test:watch": "npm test -- --watch",
+    "cover": "cross-env BABEL_ENV=commonjs istanbul cover _mocha -- --compilers js:@babel/register --recursive",
+    "lint": "eslint src test",
+    "build": "babel src --out-dir lib",
+    "prepublish": "npm run clean && npm run lint && npm run test && npm run build"
+  },
+  "main": "lib/index.js",
+  "dependencies": {
+    "lodash": "^4.17.4",
+    "qs": "^6.5.1"
+  },
+  "files": [
+    "lib"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/clutter/wt-javascript.git"
+  },
+  "peerDependencies": {
+    "redux": "^2.0.0 || ^3.0.0"
+  },
+  "keywords": [
+    "redux"
+  ],
+  "authors": [
+    "Matthew Drake <mdrake.drake@clutter.com> (https://github.com/clutter)"
+  ],
+  "license": "MIT",
+  "devDependencies": {
+    "@babel/cli": "^7.0.0-beta.38",
+    "@babel/core": "^7.0.0-beta.38",
+    "@babel/node": "^7.0.0-beta.38",
+    "@babel/plugin-proposal-object-rest-spread": "^7.0.0-beta.38",
+    "@babel/preset-env": "^7.0.0-beta.38",
+    "babel-eslint": "7",
+    "chai": "^3.5.0",
+    "cross-env": "^3.0.0",
+    "eslint": "3.x",
+    "eslint-config-airbnb-base": "^11.1.3",
+    "eslint-plugin-import": "^2.8.0",
+    "istanbul": "^1.0.0-alpha",
+    "mocha": "^3.0.2",
+    "redux": "^3.7.2",
+    "redux-logger": "^3.0.6",
+    "rimraf": "^2.5.4"
+  }
+}
