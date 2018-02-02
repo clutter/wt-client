@@ -1,9 +1,5 @@
 import QS from 'qs';
-import debounce from 'lodash/debounce';
-import isFunction from 'lodash/isFunction';
-import assign from 'lodash/assign';
-import omitBy from 'lodash/omitBy';
-import isNil from 'lodash/isNil';
+import { debounce, isFunction, assign, omitBy, isNil } from './utils';
 
 export const DEBOUNCE_MIN = 500;
 export const DEBOUNCE_MAX = 1500;
