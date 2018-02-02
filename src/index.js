@@ -98,7 +98,7 @@ const getEventEnvironmentArgs = () => ({
 });
 
 // event interface
-export default function wt(kind, payload = {}, options = {}) {
+export default function wt(kind, payload = {}, options) {
   if (kind === 'init' || kind === 'initialize') {
     initialize(payload, options);
   } else if (!context) {
