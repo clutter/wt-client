@@ -13,7 +13,6 @@
     "example": "concurrently \"webpack-dev-server --config example/webpack.config.js\" \"node example/index.server.js\"",
     "example:build": "concurrently \"NODE_ENV=production webpack --config example/webpack.config.js\" \"node example/index.server.js\""
   },
-  "private": true,
   "main": "lib/index.js",
   "dependencies": {
     "qs": "^6.5.1"
