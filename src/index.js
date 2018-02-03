@@ -97,7 +97,9 @@ const getEventEnvironmentArgs = () => ({
 export default function wt(kind, payload = {}, options) {
   if (kind === 'init' || kind === 'initialize') {
     initialize(payload, options);
-  } else if (!context) {
+    return;
+  }
+  if (!context) {
     initialize();
   }
   if (kind === 'set') {

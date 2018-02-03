@@ -12,7 +12,7 @@ export const assign = (target, ...vals) => {
   return to;
 };
 
-export const debounce = (fn, min, { maxWait }) => {
+export const debounce = (fn, min, { maxWait } = {}) => {
   let minTo;
   let maxTo;
   let flushFn;
@@ -33,10 +33,10 @@ export const debounce = (fn, min, { maxWait }) => {
   return assign((...args) => {
     clearTimeout(minTo);
     minTo = setTimeout(run, min, ...args);
-    if (!active) {
+    if (!active && maxWait) {
       maxTo = setTimeout(run, maxWait, ...args);
+      active = true;
     }
-    active = true;
     flushFn = () => fn(...args);
   }, {
     clear,

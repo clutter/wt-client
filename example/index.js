@@ -5,5 +5,8 @@ wt('initialize', {
 });
 
 wt('pageview');
-
-// const buttonOne = document.findElementById('button-one');
+wt('pageview');
+wt('pageview');
+wt('pageview');
+wt('pageview');
+setTimeout(() => wt('pageview'), 100);

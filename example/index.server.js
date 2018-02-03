@@ -10,6 +10,11 @@ const pixelGif = new Buffer([
 ]);
 
 http.createServer((request, response) => {
+  if (request.url === '/favicon.ico') {
+    response.writeHead(200, { 'Content-Type': 'image/x-icon' });
+    response.end();
+    return;
+  }
   console.log('REQUEST', request.headers, request.url);
   response.writeHead(200, { 'Content-Type': 'image/gif' });
   response.write(pixelGif);
