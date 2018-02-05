@@ -10,18 +10,22 @@ const BUFFER = 10;
 
 let loggedEvents = [];
 
+const parseLoggedEvents = () => {
+  const parsedEvents = loggedEvents.map(url => QS.parse(url.split('?').pop()));
+  const withoutTs = parsedEvents.map(
+    parsedEvent => omit({
+      ...parsedEvent,
+      events: parsedEvent.events.map(p => omit(p, ['ts'])),
+    }, ['rts']),
+  );
+  return withoutTs[0].events.map(e => e.metadata);
+};
+
 function runEvents(events, cb, timeOffset = 0) {
   setTimeout(() => {
     events.forEach(event => wt('event', event));
     setTimeout(() => {
-      const parsedEvents = loggedEvents.map(url => QS.parse(url.split('?').pop()));
-      const withoutTs = parsedEvents.map(
-        parsedEvent => omit({
-          ...parsedEvent,
-          events: parsedEvent.events.map(p => omit(p, ['ts'])),
-        }, ['rts']),
-      );
-      cb(withoutTs[0].events.map(e => e.metadata));
+      cb(parseLoggedEvents());
     }, LOAD_WAIT + DEBOUNCE_MIN + BUFFER + (timeOffset / 2));
   }, (timeOffset / 2));
 }
@@ -78,12 +82,15 @@ describe('wt-tracker.', () => {
   });
   it('should enqueue calls while networking', (done) => {
     const events = [{hello: 'world'}];
-
     events.forEach(event => wt('event', event));
-    runEvents(events, (result) => {
-      assert.deepEqual(events.concat(events), result);
+    wt('flush');
+    events.forEach(event => wt('event', event));
+    wt('flush');
+    setTimeout(() => {
+      const parsedEvents = parseLoggedEvents();
+      assert.deepEqual(events.concat(events), parsedEvents);
       done();
-    }, LOAD_WAIT - BUFFER);
+    }, 1 + LOAD_WAIT + DEBOUNCE_MIN + BUFFER);
   });
   it('should update defaults', (done) => {
     const events = [{hello: 'world'}];

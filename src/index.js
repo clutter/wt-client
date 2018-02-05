@@ -103,6 +103,10 @@ export default function wt(kind, payload = {}, options) {
   if (!context) {
     initialize();
   }
+  if (kind === 'flush') {
+    processEventsDebounced.flush();
+    return;
+  }
   if (kind === 'set') {
     setDefaults(payload);
     return;
