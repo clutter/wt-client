@@ -20,3 +20,6 @@ In general, the contribution workflow looks like this:
 After you have submitted your pull request, we’ll try to get back to you as soon as possible. We may suggest some changes or improvements.
 
 Thank you for contributing!
+
+## Tests
+

@@ -1,29 +1,30 @@
 import QS from 'qs';
-import { debounce, isFunction, assign, omitBy, isNil } from './utils';
+import { debounce, isFunction, assign, defaults, omitBy, isNil } from './utils';
 
 export const DEBOUNCE_MIN = 500;
 export const DEBOUNCE_MAX = 1500;
 
+const DEFAULT_STRINGIFY_OPTIONS = { arrayFormat: 'brackets', skipNulls: true, encode: false };
+
+const DEFAULT_CONTEXT_VARIABLES = {
+  eventQueue: [],
+  loading: false,
+  paramDefaults: {},
+  config: {},
+};
+
 // global constants
 const BATCH_MAX = 100;
 
-// global variables
-let eventQueue = [];
-let loading = false;
-let paramDefaults = {};
-
-// usually window.Image
-let loaderImage;
 // usually window
 let context;
-
-let config = {};
 
 // eslint-disable-next-line no-undef
 function initialize(_config = {}, _context = window) {
   context = _context;
-  loaderImage = new context.Image();
-  config = _config;
+  defaults(context, DEFAULT_CONTEXT_VARIABLES);
+  context.loaderImage = new context.Image();
+  context.config = _config;
 }
 
 const getRequestEnvironmentArgs = () => ({
@@ -43,38 +44,38 @@ function getRoot() {
 }
 
 function getUrl() {
-  if (config.trackerUrl) {
-    return config.trackerUrl;
+  if (context.config.trackerUrl) {
+    return context.config.trackerUrl;
   }
   return `${getRoot()}/track.gif`;
 }
 
 // main
 function processEvents() {
-  if (loading) {
+  if (context.loading) {
     return;
   }
 
-  const events = eventQueue.slice(0, BATCH_MAX);
-  eventQueue = eventQueue.slice(BATCH_MAX);
+  const events = context.eventQueue.slice(0, BATCH_MAX);
+  context.eventQueue = context.eventQueue.slice(BATCH_MAX);
   if (!events.length) {
     return;
   }
   const query = QS.stringify(
     assign({ events }, getRequestEnvironmentArgs()),
-    { arrayFormat: 'brackets', addQueryPrefix: false, skipNulls: true, encode: false },
+    { addQueryPrefix: false, ...(context.config.stringifyOptions || DEFAULT_STRINGIFY_OPTIONS) },
   );
 
-  loaderImage.onload = () => {
-    loading = false;
-    delete loaderImage.onload;
-    if (eventQueue.length) {
+  context.loaderImage.onload = () => {
+    context.loading = false;
+    delete context.loaderImage.onload;
+    if (context.eventQueue.length) {
       // eslint-disable-next-line no-use-before-define
       processEventsDebounced();
     }
   };
-  loading = true;
-  loaderImage.src = `${getUrl()}?${query}`;
+  context.loading = true;
+  context.loaderImage.src = `${getUrl()}?${query}`;
 }
 
 const processEventsDebounced = debounce(processEvents, DEBOUNCE_MIN, {
@@ -84,9 +85,9 @@ const processEventsDebounced = debounce(processEvents, DEBOUNCE_MIN, {
 // overrides
 function setDefaults(data) {
   if (isFunction(data)) {
-    return assign(paramDefaults, data(paramDefaults));
+    return assign(context.paramDefaults, data(context.paramDefaults));
   }
-  return assign(paramDefaults, data);
+  return assign(context.paramDefaults, data);
 }
 
 const getEventEnvironmentArgs = () => ({
@@ -107,7 +108,7 @@ export default function wt(kind, payload = {}, options) {
     return;
   }
   if (kind === 'clear') {
-    paramDefaults = {};
+    context.paramDefaults = {};
     return;
   }
   const {
@@ -117,13 +118,13 @@ export default function wt(kind, payload = {}, options) {
     value,
     ...args
   } = payload;
-  eventQueue.push(omitBy({
+  context.eventQueue.push(omitBy({
     kind,
     category,
     action,
     label,
     value,
-    metadata: assign({}, args, paramDefaults),
+    metadata: assign({}, args, context.paramDefaults),
     ...getEventEnvironmentArgs(),
     ts: (new Date()).valueOf(),
   }, isNil));

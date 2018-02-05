@@ -12,6 +12,20 @@ export const assign = (target, ...vals) => {
   return to;
 };
 
+export const defaults = (target, ...vals) => {
+  const to = Object(target);
+
+  for (let index = 0; index < vals.length; index += 1) {
+    const nextSource = vals[index];
+    Object.keys(nextSource).forEach((key) => {
+      if (to[key] === undefined) {
+        to[key] = nextSource[key];
+      }
+    });
+  }
+  return to;
+};
+
 export const debounce = (fn, min, { maxWait } = {}) => {
   let minTo;
   let maxTo;
