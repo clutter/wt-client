@@ -2,7 +2,6 @@ export const isFunction = val => Object.prototype.toString.call(val) === '[objec
 
 export const assign = (target, ...vals) => {
   const to = Object(target);
-
   for (let index = 0; index < vals.length; index += 1) {
     const nextSource = vals[index];
     Object.keys(nextSource).forEach((key) => {

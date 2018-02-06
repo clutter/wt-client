@@ -1,12 +1,26 @@
 # wt-javascript
 
-Browser client for clutter wt.
+Browser client for any pixel endpoint.
 
-## Installation
+## What it is?
+
+A browser client that allows you to enqueue and send events to any pixel endpoint.
+
+This uses a fake image to capture cross-site analytics on your own server.
+
+## Why should I use it?
+
+You want to capture analytics, but on your own terms! This lets you pipe events straight to your own server instead of someone else's.
+
+A good example pixel endpoint can be seen at `examples/index.server.js` 
+
+## Use
+
+### Installation - Webpack
 
 `yarn add @clutter/wt`
 
-## Usage
+### Usage
 
 Within a browser environment, `@clutter/wt` will  
 
@@ -147,7 +161,3 @@ wt('pageview');
 //   &agent=<my browser agent>
 //   &rts=1517356691561
 ```
-
-## License
-
-`wt-javascript` is free software under the MIT license.
