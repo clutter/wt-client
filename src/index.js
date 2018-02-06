@@ -1,142 +1,156 @@
 import QS from 'qs';
-import { debounce, isFunction, assign, defaults, omitBy, isNil } from './utils';
+import { debounce, isFunction, assign, omitBy, isNil } from './utils';
 
 export const DEBOUNCE_MIN = 500;
 export const DEBOUNCE_MAX = 1500;
 
 const DEFAULT_STRINGIFY_OPTIONS = { arrayFormat: 'brackets', skipNulls: true, encode: false };
 
-const DEFAULT_CONTEXT_VARIABLES = {
-  eventQueue: [],
-  loading: false,
-  paramDefaults: {},
-  config: {},
-};
-
 // global constants
 const BATCH_MAX = 100;
 
-// usually window
-let context;
-
-// eslint-disable-next-line no-undef
-function initialize(_config = {}, _context = window) {
-  context = _context;
-  defaults(context, DEFAULT_CONTEXT_VARIABLES);
-  context.loaderImage = new context.Image();
-  context.config = _config;
+function resolveMethod(val, ...args) {
+  return isFunction(val) ? val(...args) : val;
 }
 
-const getRequestEnvironmentArgs = () => ({
-  dimensions: {
-    width: context.innerWidth,
-    height: context.innerHeight,
-  },
-  agent: context.navigator.userAgent,
-  rts: (new Date()).valueOf(),
-});
-
-function getRoot() {
-  const hostParts = context.location.hostname.split('.').slice(-2);
-  const [clutter, topLevel] = hostParts;
-  const tempHost = ['www', clutter, topLevel].join('.');
-  return `//${tempHost}`;
-}
-
-function getUrl() {
-  if (context.config.trackerUrl) {
-    return context.config.trackerUrl;
+export class Wt {
+  // eslint-disable-next-line no-undef
+  constructor(context) {
+    this.wtConfig = {};
+    this.context = context;
+    this.paramDefaults = {};
+    this.eventQueue = [];
+    this.loading = false;
+    this.processEventsDebounced = debounce(this.processEvents.bind(this), DEBOUNCE_MIN, {
+      maxWait: DEBOUNCE_MAX,
+    });
   }
-  return `${getRoot()}/track.gif`;
-}
-
-// main
-function processEvents() {
-  if (context.loading) {
-    return;
+  initialize(payload) {
+    this.wtConfig = resolveMethod(payload, this.wtConfig, this);
   }
-
-  const events = context.eventQueue.slice(0, BATCH_MAX);
-  context.eventQueue = context.eventQueue.slice(BATCH_MAX);
-  if (!events.length) {
-    return;
+  getLoaderImage() {
+    return new this.context.Image();
   }
-  const query = QS.stringify(
-    assign({ events }, getRequestEnvironmentArgs()),
-    { addQueryPrefix: false, ...(context.config.stringifyOptions || DEFAULT_STRINGIFY_OPTIONS) },
-  );
-
-  context.loaderImage.onload = () => {
-    context.loading = false;
-    delete context.loaderImage.onload;
-    if (context.eventQueue.length) {
-      // eslint-disable-next-line no-use-before-define
-      processEventsDebounced();
+  getUrl() {
+    if (this.wtConfig.trackerUrl) {
+      return this.wtConfig.trackerUrl;
     }
+    return `${this.getRoot()}/track.gif`;
+  }
+  getRoot() {
+    if (this.wtConfig.trackerDomain) {
+      return this.wtConfig.trackerDomain;
+    }
+    return `//${this.context.location.hostname}`;
+  }
+  sendToServer(payload) {
+    this.loaderImage = this.loaderImage || this.getLoaderImage();
+    const query = QS.stringify(
+      payload,
+      { addQueryPrefix: false, ...(this.wtConfig.stringifyOptions || DEFAULT_STRINGIFY_OPTIONS) },
+    );
+
+    return new Promise((resolve, reject) => {
+      this.loaderImage.onload = () => {
+        delete this.loaderImage.onerror;
+        delete this.loaderImage.onload;
+        resolve();
+      };
+      this.loaderImage.onerror = () => {
+        delete this.loaderImage.onerror;
+        delete this.loaderImage.onload;
+        reject();
+      };
+      this.loaderImage.src = `${this.getUrl()}?${query}`;
+    });
+  }
+  getRequestEnvironmentArgs() {
+    return {
+      dimensions: {
+        width: this.context.innerWidth,
+        height: this.context.innerHeight,
+      },
+      agent: this.context.navigator.userAgent,
+      rts: (new Date()).valueOf(),
+    };
+  }
+  getEventEnvironmentArgs() {
+    return {
+      url: this.context.location.href,
+    };
+  }
+  processEvents() {
+    if (this.loading) {
+      return;
+    }
+
+    const events = this.eventQueue.slice(0, BATCH_MAX);
+    this.eventQueue = this.eventQueue.slice(BATCH_MAX);
+    if (!events.length) {
+      return;
+    }
+    const payload = assign({ events }, this.getRequestEnvironmentArgs());
+    this.loading = true;
+    this.sendToServer(payload)
+      .then(() => {
+        if (this.eventQueue.length) {
+          // eslint-disable-next-line no-use-before-define
+          this.processEventsDebounced();
+        }
+        this.loading = false;
+      })
+      .catch(() => {
+        this.loading = false;
+      });
+  }
+  handleEvent(kind, payload) {
+    const {
+      category,
+      action,
+      label,
+      value,
+      ...args
+    } = payload;
+    this.eventQueue.push(omitBy({
+      kind,
+      category,
+      action,
+      label,
+      value,
+      metadata: assign({}, args, this.paramDefaults),
+      ...this.getEventEnvironmentArgs(),
+      ts: (new Date()).valueOf(),
+    }, isNil));
+    this.signalEventChange();
+  }
+  signalEventChange() {
+    this.processEventsDebounced();
+  }
+  flush() {
+    this.processEventsDebounced.flush();
+  }
+  clear() {
+    this.paramDefaults = {};
+  }
+  set(payload) {
+    assign(this.paramDefaults, resolveMethod(payload, this.paramDefaults, this));
+  }
+  config(payload) {
+    assign(this.wtConfig, resolveMethod(payload, this.wtConfig, this));
+  }
+  instance() {
+    return this;
+  }
+}
+
+export function withContext(context) {
+  const wt = new Wt(context);
+  return function run(cmd, ...args) {
+    if (wt[cmd]) {
+      return wt[cmd](...args);
+    }
+    return wt.handleEvent(cmd, ...args);
   };
-  context.loading = true;
-  context.loaderImage.src = `${getUrl()}?${query}`;
 }
 
-const processEventsDebounced = debounce(processEvents, DEBOUNCE_MIN, {
-  maxWait: DEBOUNCE_MAX,
-});
-
-// overrides
-function setDefaults(data) {
-  if (isFunction(data)) {
-    return assign(context.paramDefaults, data(context.paramDefaults));
-  }
-  return assign(context.paramDefaults, data);
-}
-
-const getEventEnvironmentArgs = () => ({
-  url: context.location.href,
-});
-
-// event interface
-export default function wt(kind, payload = {}, options) {
-  if (kind === 'init' || kind === 'initialize') {
-    initialize(payload, options);
-    return;
-  }
-  if (!context) {
-    initialize();
-  }
-  if (kind === 'flush') {
-    processEventsDebounced.flush();
-    return;
-  }
-  if (kind === 'set') {
-    setDefaults(payload);
-    return;
-  }
-  if (kind === 'clear') {
-    context.paramDefaults = {};
-    return;
-  }
-  const {
-    category,
-    action,
-    label,
-    value,
-    ...args
-  } = payload;
-  context.eventQueue.push(omitBy({
-    kind,
-    category,
-    action,
-    label,
-    value,
-    metadata: assign({}, args, context.paramDefaults),
-    ...getEventEnvironmentArgs(),
-    ts: (new Date()).valueOf(),
-  }, isNil));
-  processEventsDebounced();
-}
-
-wt.event = payload => wt('event', payload);
-wt.pageView = payload => wt('pageview', payload);
-wt.clear = () => wt('clear');
-wt.set = payload => wt('set', payload);
-wt.initialize = (...args) => wt('initialize', ...args);
+export default withContext(this);
