@@ -7,7 +7,8 @@ module.exports = {
     path: path.join(__dirname, 'dist'),
     filename: 'wt.js',
     library: 'WT',
-    libraryTarget: 'umd',
+    libraryExport: 'default',
+    libraryTarget: 'window',
   },
   module: {
     rules: [

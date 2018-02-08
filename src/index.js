@@ -153,4 +153,4 @@ export function withContext(context) {
   };
 }
 
-export default withContext(this);
+export default withContext(global);
