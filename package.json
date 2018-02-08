@@ -8,7 +8,7 @@
     "test:watch": "npm test -- --watch",
     "cover": "cross-env NODE_ENV=test nyc _mocha --compilers js:@babel/register --recursive",
     "lint": "eslint src test",
-    "build": "babel src --out-dir lib",
+    "build": "babel src --out-dir lib && NODE_ENV=production webpack",
     "prepublish": "npm run clean && npm run lint && npm run test && npm run build",
     "example": "concurrently \"webpack-dev-server --config example/webpack.config.js\" \"node example/index.server.js\"",
     "example:build": "concurrently \"NODE_ENV=production webpack --config example/webpack.config.js\" \"node example/index.server.js\""
@@ -18,17 +18,15 @@
     "qs": "^6.5.1"
   },
   "files": [
-    "lib"
+    "lib",
+    "dist"
   ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/clutter/wt-javascript.git"
   },
-  "peerDependencies": {
-    "redux": "^2.0.0 || ^3.0.0"
-  },
   "keywords": [
-    "redux"
+    "analytics"
   ],
   "authors": [
     "Matthew Drake <mdrake.drake@clutter.com> (https://github.com/clutter)"

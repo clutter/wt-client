@@ -46,3 +46,4 @@ samples/native
 samples/native-old
 yarn-error.log
 example/dist/
+dist/
