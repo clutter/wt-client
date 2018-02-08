@@ -2,6 +2,9 @@
 
 `wt` is a JavaScript library to track events in the browser.
 
+[![build status](https://img.shields.io/circleci/project/github/clutter/wt-client.svg)](https://circleci.com/gh/clutter/wt-client)
+[![npm version](https://img.shields.io/npm/v/@clutter/wt.svg?style=flat-square)](https://www.npmjs.com/package/@clutter/wt)
+
 It provides a single function `wt` that can be used as follows:
 
 ```js
