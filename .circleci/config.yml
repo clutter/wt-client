@@ -1,9 +1,8 @@
 version: 2
 jobs:
   build:
-    working_directory: ~/mern-starter
     docker:
-      - image: circleci/node:4.8.2
+      - image: circleci/node:8.9.4
     steps:
       - checkout
       - run:
@@ -12,8 +11,8 @@ jobs:
       - restore_cache:
           key: dependency-cache-{{ checksum "package.json" }}
       - run:
-          name: install-npm-wee
-          command: npm install --dev
+          name: install-npm
+          command: npm install
       - save_cache:
           key: dependency-cache-{{ checksum "package.json" }}
           paths:
@@ -21,6 +20,9 @@ jobs:
       - run:
           name: test
           command: npm test
+      - run:
+          name: nyc-dir
+          command: 'mkdir .nyc_output'
       - run:
           name: code-coverage
           command: './node_modules/.bin/nyc report --reporter=text-lcov'
