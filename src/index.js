@@ -103,7 +103,7 @@ export class Wt {
         this.loading = false;
       });
   }
-  handleEvent(kind, payload) {
+  handleEvent(kind, payload = {}) {
     const {
       category,
       action,
