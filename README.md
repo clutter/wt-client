@@ -40,7 +40,7 @@ Before calling the `wt` method, import from the library:
 import wt from '@clutter/wt';
 ```
 
-# How to use yt
+# How to use wt
 
 Events can be tracked with the function `wt(*string* kind, *object* params)`.
 For a single event, sent `kind` to `'event'` and pass any parameters you want to track in `params`.
