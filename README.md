@@ -1,163 +1,165 @@
-# wt-javascript
+# What is wt
 
-Browser client for any pixel endpoint.
+`wt` is a JavaScript library to track events in the browser.
 
-## What it is?
-
-A browser client that allows you to enqueue and send events to any pixel endpoint.
-
-This uses a fake image to capture cross-site analytics on your own server.
-
-## Why should I use it?
-
-You want to capture analytics, but on your own terms! This lets you pipe events straight to your own server instead of someone else's.
-
-A good example pixel endpoint can be seen at `examples/index.server.js` 
-
-## Use
-
-### Installation - Webpack
-
-`yarn add @clutter/wt`
-
-### Usage
-
-Within a browser environment, `@clutter/wt` will  
+It provides a single function `wt` that can be used as follows:
 
 ```js
 import wt from '@clutter/wt';
-
-// optional
-wt('initialize', {
-  trackerUrl: 'www.my-pixel-endpoint.com/track.gif',
-});
-
-// optional - this will be sent with every event
-wt('set', {
-  user: 'userId',
-});
-
-// now track events!
-wt('event', {
-  custom: 'data',
-  action: 'click',
-});
-
-// or wt.event({ action: 'click', custom: 'data' });
-
-// now track events!
-wt('pageview');
-// or wt.pageview()
-```
-
-## Api
-
-### wt(*string* kind, *object* params)
-
-Enqueues an event to be sent to the `tracker.gif`
-
-```js
-import wt from '@clutter/wt';
-
-wt('event', { hello: 'world' });
-// http://pixel.test.com?payload[][kind]=event&payload[][data][hello]=world&payload[][url]=https://<my browser url>&payload[][ts]=1517356691057&agent=<my browser agent>&rts=1517356691561
-// sent to tracker.gif
-```
-
-### Configuration
-
-#### initialize
-
-Sets global options for analytics.
-
-```js
-import wt from '@clutter/wt';
-
-wt('initialize', { trackerUrl: 'https://pixel.clutter.com/tracker.gif' });
-
-wt('event', { hello: 'world' });
-// http://pixel.clutter.com?payload[][kind]=event&payload[][metadata][hello]=world&payload[][url]=https://<my browser url>&payload[][ts]=1517356691057&agent=<my browser agent>&rts=1517356691561
-// sent to tracker.gif
-```
-
-Initialize can be called at any time to change core configuration. The only config option is **trackerUrl**
-
-`wt('inititalize', config: { trackerUrl: string });`
-
-- `inititalized`: string
-- **config**: object
-  - **trackerUrl**: string - the url of the tracker pixel gif
-
-
-#### set
-
-Sets default metadata that gets sent with every analytics event.
-
-```js
-import wt from '@clutter/wt';
-
-wt('set', { hello: 'world' });
-
-wt('event');
-// http://pixel.clutter.com?payload[][kind]=event
-//   &payload[][metadata][hello]=world
-//   &payload[][url]=https://<my browser url>
-//   &payload[][ts]=1517356691057&agent=<my browser agent>
-//   &rts=1517356691561
-```
-
-Set can be called at any time to change default metadata properties. The resolved property from the set call will be **assigned** to the default metadata properties.
-
-`wt('set', metadata: any);`
-
-- `set`: string
-- **metadata**: object | function<object>(metadata: object) - function calls behave like `React.Component().setState()`. Metadata defaults will be passed as the first argument and the result of this function will be assigned to metadata.  
-
-##### Example: Metadata counter with set
-
-```js
-import wt from '@clutter/wt';
-
-button.addEventListener(
-  'click',
-  () => wt(
-    'set',
-    ({ clickCounter = 0 }) => ({ clickCounter: clickCounter + 1 }),
-  ),
-);
-
 button.addEventListener(
   'click',
   () => wt('event'),
 );
-
-button.click();
-// http://pixel.clutter.com?payload[][kind]=event
-//   &payload[][clickCounter]=1
-//   ...
-
-button.click();
-// http://pixel.clutter.com?payload[][kind]=event
-//   &payload[][clickCounter]=2
-//   ...
-
 ```
 
-#### clear 
+When `button` is clicked, this code will instantiate an `<img>` tag with the `src` attribute set to:
+`/track.gif?payload[][kind]=event&payload[][url]=CURRENT_URL&payload[][ts]=1517356691057&agent=Mozilla&rts=1517356691561`
 
-Resets default metadata that gets sent with every analytics event.
+On the server, the endpoint `track.gif` is expected to return a valid image (for instance, a transparent pixel)
+and to parse all the provided parameters, keeping track of the events sent by `wt`.
+
+# Why use wt
+
+The concept of `wt` is the same as Google Analytics: to use a transparent pixel to track events in the browser.
+The main difference is that `wt` is highly customizable and can send events to your own server, rather than to Google.
+
+# How to install and load wt
+
+The easiest way to install `wt` is through Yarn:
+
+```
+yarn add @clutter/wt
+```
+
+Before calling the `wt` method, import from the library:
 
 ```js
 import wt from '@clutter/wt';
-
-wt('set', { hello: 'world' });
-
-wt('clear');
-
-wt('pageview');
-// http://pixel.clutter.com?payload[][kind]=pageview
-//   &payload[][url]=https://<my browser url>
-//   &payload[][ts]=1517356691057
-//   &agent=<my browser agent>
-//   &rts=1517356691561
 ```
+
+# How to use yt
+
+Events can be tracked with the function `wt(*string* kind, *object* params)`.
+For a single event, sent `kind` to `'event'` and pass any parameters you want to track in `params`.
+For instance:
+
+```js
+wt('event', { action: 'hover' })
+```
+
+will instantiate an `<img>` tag with the `src` attribute set to
+
+```
+/track.gif
+ ?payload[][kind]=event
+ &payload[][url]=CURRENT_URL
+ &payload[][action]=hover
+ &payload[][ts]=1517356691057
+ &agent=Mozilla
+ &rts=1517356691561
+```
+
+Breaking the URL down, `/track.gif` is followed by these query parameters:
+
+- `payload[][kind]`: the kind of tracking; in this case: `'event'`
+- `payload[][url]`: the URL of the page where the event occurred
+- `payload[][action]`: the only param to track in this case: `'hover'`
+- `payload[][ts]`: the timestamp when the event occurred (Unix-time milliseconds)
+- `agent`: the User Agent of the request
+- `rts`: the timestamp when the event was sent (that is, when the `src` attribute of the image was set)
+
+### How to track multiple events
+
+Multiple events can be tracked by calling `wt` several times:
+
+```js
+wt('event', { action: 'hover' })
+// after 0.2 seconds
+wt('event', { action: 'click' })
+```
+
+Under the hood, `wt` is optimized to deal with multiple events.
+
+Firstly, `wt` instantiates a *new* image only the first time `wt` is invoked.
+Every other time, `wt` changes the `src` attribute without creating a new image.
+
+Secondly, `wt` bundles multiple consecutive events into one request, if they occur within 1.5 seconds.
+The goal is to avoid hitting the server too many times.
+If multiple events are sent in the same request, each request has its own payload.
+For instance, the URL for the two events above looks like this:
+
+```
+/track.gif
+ ?payload[][kind]=event
+ &payload[][url]=CURRENT_URL
+ &payload[][action]=hover
+ &payload[][ts]=1517356691057
+ ?payload[][kind]=event
+ &payload[][url]=CURRENT_URL
+ &payload[][action]=click
+ &payload[][ts]=1517356691257
+ &agent=Mozilla
+ &rts=1517356691561
+```
+
+This format of array in query parameters is particularly optimized for Rails.
+
+### How to track a pageview
+
+```js
+wt('pageview')
+```
+
+### How to change the location of the tracking image
+
+By default, `wt` expects the image to be located at `/track.gif` in the same host as the current page.
+This can be changed by initializing `wt` with a different `trackerUrl` before tracking:
+
+```js
+wt('initialize', {
+  trackerUrl: 'www.my-pixel-endpoint.com/track.gif',
+});
+```
+
+### How to track more data for each event
+
+Any object can be passed when tracking an event, for instance:
+
+```js
+wt('event', {
+  action: 'click',
+  user: {
+    id: 1,
+    email: 'user@example.com'
+  },
+  custom: false,
+});
+```
+
+### How to submit default data for every event
+
+If part of the payload is the same for every event, it can be set once using `set`. For instance calling:
+
+```js
+wt('set', {
+  user: {
+   id: 1  
+  },
+});
+```
+
+ensures that the user ID is sent as part of the payload in any event.
+
+Calling `set` multiple times adds new values without clearing the old ones.
+In this sense, `set` behaves like `React.Component().setState()`.
+All the values already set can be cleared with:
+
+```js
+wt('clear')
+```
+
+# How to implement the server
+
+In order for `wt` to fully work, a server must be running that provides a `track.gif` endpoint.
+This can be built in Rails, node.js or any other technology.
+An example is provided inside the repo at `examples/index.server.js`
