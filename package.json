@@ -1,6 +1,6 @@
 {
   "name": "@clutter/wt",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "scripts": {
     "clean": "rimraf lib",
     "test": "cross-env BABEL_ENV=commonjs mocha test/index --compilers js:@babel/register --recursive",

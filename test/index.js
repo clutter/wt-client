@@ -1,7 +1,7 @@
 import { assert } from 'chai';
 import QS from 'qs';
 import { omit } from 'lodash';
-import { withContext, DEBOUNCE_MIN, Wt } from '../src';
+import { withContext, DEBOUNCE_MIN, Wt, SEND_COMPLETED } from '../src';
 
 import { debounce } from '../src/utils';
 
@@ -100,6 +100,30 @@ describe('wt-tracker.', () => {
       done();
     });
   });
+  it('should hit the event emitter', (done) => {
+    const events = [{hello: 'world'}];
+    let touched = false;
+    const unsub = wt('subscribe', SEND_COMPLETED, () => {
+      touched = true;
+    });
+    runEvents(events, () => {
+      assert.equal(touched, true);
+      unsub();
+      done();
+    });
+  });
+  it('should respect unsub', (done) => {
+    const events = [{hello: 'world'}];
+    let touched = false;
+    const unsub = wt('subscribe', SEND_COMPLETED, () => {
+      touched = true;
+    });
+    unsub();
+    runEvents(events, () => {
+      assert.equal(touched, false);
+      done();
+    });
+  });
   it('should enqueue calls while networking', () => {
     const events = [{hello: 'world'}];
     events.forEach(event => wt('event', event));
@@ -176,7 +200,6 @@ describe('wt-tracker.', () => {
     wt('config', config);
     const inst = wt('instance');
     assert.equal(inst.wtConfig.hello, config.hello);
-
   });
   it('should return an instance', () => {
     const inst = wt('instance');

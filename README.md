@@ -161,6 +161,35 @@ All the values already set can be cleared with:
 wt('clear')
 ```
 
+### Events
+
+You may want to subscribe to lifecycle events for the tracker.
+
+```js
+import wt, { SEND_COMPLETED } from '@clutter/wt'
+wt('subscribe', SEND_COMPLETED, () => {
+  console.log('Analytics data sent');
+});
+```
+
+The lifecycle events are:
+
+- `SEND_STARTED: "send:started"` - the tracker has started sending data via the tracker pixel
+- `SEND_COMPLETED: "send:completed"` - the tracker has finished sending data via the tracker pixel
+- `QUEUE_COMPLETED: "queue:completed"` - the tracker has finished sending data via the tracker pixel and no additional events are queued
+- `QUEUE_CONTINUED: "queue:continued"` - the tracker has finished sending data via the tracker pixel and some additional events are queued
+
+Calling this method will return an `unsubscribe` method. You can use it to stop listening to the event.
+
+```js
+import wt, { SEND_COMPLETED } from '@clutter/wt'
+
+const unsub = wt('subscribe', SEND_COMPLETED, () => {
+  console.log('Analytics data sent - you\'ll only see this once');
+  unsub();
+});
+```
+
 # How to implement the server
 
 In order for `wt` to fully work, a server must be running that provides a `track.gif` endpoint.

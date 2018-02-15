@@ -1,4 +1,5 @@
 import QS from 'qs';
+import EventEmitter from 'events';
 import { debounce, isFunction, assign, omitBy, isNil } from './utils';
 
 export const DEBOUNCE_MIN = 500;
@@ -13,9 +14,15 @@ function resolveMethod(val, ...args) {
   return isFunction(val) ? val(...args) : val;
 }
 
+export const SEND_STARTED = 'send:started';
+export const SEND_COMPLETED = 'send:completed';
+export const QUEUE_COMPLETED = 'queue:completed';
+export const QUEUE_CONTINUED = 'queue:continued';
+
 export class Wt {
   // eslint-disable-next-line no-undef
   constructor(context) {
+    this.emitter = new EventEmitter();
     this.wtConfig = {};
     this.context = context;
     this.paramDefaults = {};
@@ -91,11 +98,16 @@ export class Wt {
     }
     const payload = assign({ events }, this.getRequestEnvironmentArgs());
     this.loading = true;
+    this.emitter.emit(SEND_STARTED);
     this.sendToServer(payload)
       .then(() => {
+        this.emitter.emit(SEND_COMPLETED);
         if (this.eventQueue.length) {
           // eslint-disable-next-line no-use-before-define
           this.processEventsDebounced();
+          this.emitter.emit(QUEUE_CONTINUED);
+        } else {
+          this.emitter.emit(QUEUE_COMPLETED);
         }
         this.loading = false;
       })
@@ -137,6 +149,12 @@ export class Wt {
   }
   config(payload) {
     assign(this.wtConfig, resolveMethod(payload, this.wtConfig, this));
+  }
+  subscribe(eventName, cb) {
+    this.emitter.on(eventName, cb);
+    return () => {
+      this.emitter.removeListener(eventName, cb);
+    };
   }
   instance() {
     return this;
