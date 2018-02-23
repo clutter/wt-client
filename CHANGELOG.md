@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## [v1.0.5] - Thursday, February 22, 2018
+
+ - Encoded URL Properly
+
 ## [v1.0.4] - Thursday, February 22, 2018
 
  - Added referrer as a value sent to the recipient image

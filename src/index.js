@@ -5,7 +5,7 @@ import { debounce, isFunction, assign, omitBy, isNil } from './utils';
 export const DEBOUNCE_MIN = 500;
 export const DEBOUNCE_MAX = 1500;
 
-const DEFAULT_STRINGIFY_OPTIONS = { arrayFormat: 'brackets', skipNulls: true, encode: false };
+const DEFAULT_STRINGIFY_OPTIONS = { arrayFormat: 'brackets', skipNulls: true, encode: true };
 
 // global constants
 const BATCH_MAX = 100;

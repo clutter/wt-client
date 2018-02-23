@@ -1,5 +1,7 @@
 const http = require('http');
 const port = 3000;
+const QS = require('qs');
+const URL = require('url');
 
 const pixelGif = new Buffer([
   71,  73,  70,  56,  57,  97,  1,   0,   1,   0,
@@ -15,7 +17,9 @@ http.createServer((request, response) => {
     response.end();
     return;
   }
-  console.log('REQUEST', request.headers, request.url);
+  const parsedUrl = URL.parse(request.url);
+
+  console.log('REQUEST', request.headers, parsedUrl, '\n', JSON.stringify(QS.parse(parsedUrl.search)));
   response.writeHead(200, { 'Content-Type': 'image/gif' });
   response.write(pixelGif);
   response.end();

@@ -1,6 +1,6 @@
 import { assert } from 'chai';
 import QS from 'qs';
-import { omit } from 'lodash';
+import { omit, assign } from 'lodash';
 import { withContext, DEBOUNCE_MIN, Wt, SEND_COMPLETED } from '../src';
 
 import { debounce } from '../src/utils';
@@ -8,10 +8,12 @@ import { debounce } from '../src/utils';
 const LOAD_WAIT = 100;
 const BUFFER = 10;
 
+const HREF = 'https://www.test.url/test-path?hello=world&hi=mom';
+
 const context = {
   location: {
     hostname: 'www.test.url',
-    href: 'https://www.test.url/test-path'
+    href: HREF,
   },
   document: {
     referrer: 'test',
@@ -59,7 +61,7 @@ const parseLoggedEvents = () => {
     }, ['rts']),
   );
   return withoutTs
-    .map(e => e.events.map(e => e.metadata))
+    .map(e => e.events.map(e => assign({}, e.metadata, { url: e.url })))
     .reduce((memo, arr) => (Array.isArray(arr) ? [...memo, ...arr] : [...memo, arr]), []);
 };
 
@@ -97,14 +99,14 @@ describe('wt-tracker.', () => {
     setTimeout(done, LOAD_WAIT + DEBOUNCE_MIN + BUFFER);
   });
   it('should log one call', (done) => {
-    const events = [{hello: 'world'}];
+    const events = [{hello: 'world', url: HREF}];
     runEvents(events, (result) => {
       assert.deepEqual(events, result);
       done();
     });
   });
   it('should hit the event emitter', (done) => {
-    const events = [{hello: 'world'}];
+    const events = [{hello: 'world', url: HREF}];
     let touched = false;
     const unsub = wt('subscribe', SEND_COMPLETED, () => {
       touched = true;
@@ -116,7 +118,7 @@ describe('wt-tracker.', () => {
     });
   });
   it('should respect unsub', (done) => {
-    const events = [{hello: 'world'}];
+    const events = [{hello: 'world', url: HREF}];
     let touched = false;
     const unsub = wt('subscribe', SEND_COMPLETED, () => {
       touched = true;
@@ -128,7 +130,7 @@ describe('wt-tracker.', () => {
     });
   });
   it('should enqueue calls while networking', () => {
-    const events = [{hello: 'world'}];
+    const events = [{hello: 'world', url: HREF}];
     events.forEach(event => wt('event', event));
     wt('flush');
     // now loading
@@ -144,7 +146,7 @@ describe('wt-tracker.', () => {
 
   });
   it('should update defaults', (done) => {
-    const events = [{hello: 'world'}];
+    const events = [{hello: 'world', url: HREF}];
 
     wt('set', { userId: '1' });
 
@@ -169,7 +171,7 @@ describe('wt-tracker.', () => {
     inst.sendToServer = () => waitFor(100);
     const events = [];
     for(let i = 0; i < 1000; i ++) {
-      events.push({hello: 'world'});
+      events.push({hello: 'world', url: HREF});
     }
     events.forEach(event => wt('event', event));
     wt('flush');
@@ -186,7 +188,7 @@ describe('wt-tracker.', () => {
     inst.sendToServer = () => waitFor(1);
     const events = [];
     for(let i = 0; i < 10; i ++) {
-      events.push({hello: 'world'});
+      events.push({hello: 'world', url: HREF});
     }
     events.forEach(event => wt('event', event));
     wt('flush');
@@ -199,7 +201,7 @@ describe('wt-tracker.', () => {
     }, 100);
   });
   it('should update config', () => {
-    const config = { hello: 'world' };
+    const config = { hello: 'world', url: HREF };
     wt('config', config);
     const inst = wt('instance');
     assert.equal(inst.wtConfig.hello, config.hello);
