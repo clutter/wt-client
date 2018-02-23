@@ -13,6 +13,9 @@ const context = {
     hostname: 'www.test.url',
     href: 'https://www.test.url/test-path'
   },
+  document: {
+    referrer: 'test',
+  },
   navigator: {
     userAgent: 'test agent'
   },
