@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [v1.0.4] - Thursday, February 22, 2018
+
+ - Added referrer as a value sent to the recipient image
+ 
+ ## [v1.0.3] - Thursday, February 11, 2018
+ 
+  - Added better defaults for context
+
 ## [v1.0.2] - Thursday, February 8, 2018
 
  - Updated readme and added default for events
