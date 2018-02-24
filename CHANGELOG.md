@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## [v1.0.6] - Friday, February 23, 2018
+
+ - Change spelling of referer to referrer
+
 ## [v1.0.5] - Thursday, February 22, 2018
 
  - Encoded URL Properly

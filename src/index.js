@@ -84,7 +84,7 @@ export class Wt {
   getEventEnvironmentArgs() {
     return {
       url: this.context.location.href,
-      referer: this.context.document.referrer,
+      referrer: this.context.document.referrer,
     };
   }
   processEvents() {
