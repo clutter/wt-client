@@ -31,6 +31,28 @@ export class Wt {
     this.processEventsDebounced = debounce(this.processEvents.bind(this), DEBOUNCE_MIN, {
       maxWait: DEBOUNCE_MAX,
     });
+    this.resetFirstLoad();
+  }
+  resetFirstLoad() {
+    this.firstLoaded = false;
+    if (this.unsubFirstLoad) {
+      this.unsubFirstLoad();
+    }
+    this.unsubFirstLoad = this.subscribe(SEND_COMPLETED, () => {
+      this.firstLoaded = true;
+      this.unsubFirstLoad();
+      delete this.unsubFirstLoad;
+    });
+  }
+  afterFirstLoad(cb) {
+    if (this.firstLoaded) {
+      cb();
+    } else {
+      const unsub = this.subscribe(SEND_COMPLETED, () => {
+        cb();
+        unsub();
+      });
+    }
   }
   initialize(payload) {
     this.wtConfig = resolveMethod(payload, this.wtConfig, this);
