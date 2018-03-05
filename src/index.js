@@ -35,6 +35,9 @@ export class Wt {
   }
   resetFirstLoad() {
     this.firstLoaded = false;
+    if (this.unsubFirstLoadCb) {
+      this.unsubFirstLoadCb();
+    }
     if (this.unsubFirstLoad) {
       this.unsubFirstLoad();
     }
@@ -48,9 +51,10 @@ export class Wt {
     if (this.firstLoaded) {
       cb();
     } else {
-      const unsub = this.subscribe(SEND_COMPLETED, () => {
+      this.unsubFirstLoadCb = this.subscribe(SEND_COMPLETED, () => {
         cb();
-        unsub();
+        this.unsubFirstLoadCb();
+        delete this.unsubFirstLoadCb;
       });
     }
   }

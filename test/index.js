@@ -107,8 +107,8 @@ describe('wt-tracker.', () => {
   });
   it('should handle after first load events', (done) => {
     const events = [{hello: 'world', url: HREF}];
-    wt('resetFirstLoad');
     let touchedCount = 0;
+    wt('resetFirstLoad');
     wt('afterFirstLoad', () => {
       touchedCount ++;
     });
@@ -120,6 +120,10 @@ describe('wt-tracker.', () => {
       });
       assert.equal(touchedCount, 2);
       done();
+    });
+    wt('resetFirstLoad');
+    wt('afterFirstLoad', () => {
+      touchedCount ++;
     });
   });
   it('should hit the event emitter', (done) => {
