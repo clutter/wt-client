@@ -192,7 +192,7 @@ const unsub = wt('subscribe', SEND_COMPLETED, () => {
 
 ### First Load
 
-You may be sending a cookie back from your server. If you want to wait for an event to complete before performing actions, use the `firstLoad` command.
+You may be sending a cookie back from your server. If you want to wait for an event to complete before performing actions, use the `afterFirstLoad` command.
 
 ```js
 import wt from '@clutter/wt'
