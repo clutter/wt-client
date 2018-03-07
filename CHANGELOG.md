@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## [v1.0.7] - Monday, March 5, 2018
+
+ - Added first load handler
+
 ## [v1.0.6] - Friday, February 23, 2018
 
  - Change spelling of referer to referrer

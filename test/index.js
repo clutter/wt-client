@@ -67,9 +67,9 @@ const parseLoggedEvents = () => {
 
 const waitFor = time => new Promise(resolve => setTimeout(resolve, time));
 
-function runEvents(events, cb, timeOffset = 0) {
+function runEvents(events, cb, timeOffset = 0, wtInstance = wt) {
   setTimeout(() => {
-    events.forEach(event => wt('event', event));
+    events.forEach(event => wtInstance('event', event));
     setTimeout(() => {
       cb(parseLoggedEvents());
     }, LOAD_WAIT + DEBOUNCE_MIN + BUFFER + (timeOffset / 2));
@@ -103,6 +103,27 @@ describe('wt-tracker.', () => {
     runEvents(events, (result) => {
       assert.deepEqual(events, result);
       done();
+    });
+  });
+  it('should handle after first load events', (done) => {
+    const events = [{hello: 'world', url: HREF}];
+    let touchedCount = 0;
+    wt('resetFirstLoad');
+    wt('afterFirstLoad', () => {
+      touchedCount ++;
+    });
+    assert.equal(touchedCount, 0);
+    runEvents(events, () => {
+      assert.equal(touchedCount, 1);
+      wt('afterFirstLoad', () => {
+        touchedCount ++;
+      });
+      assert.equal(touchedCount, 2);
+      done();
+    });
+    wt('resetFirstLoad');
+    wt('afterFirstLoad', () => {
+      touchedCount ++;
     });
   });
   it('should hit the event emitter', (done) => {
