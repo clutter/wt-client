@@ -108,8 +108,12 @@ export class Wt {
     };
   }
   getEventEnvironmentArgs() {
+    const urlParts = this.context.location.href.split('#');
+    const url = urlParts.shift();
+    const hash = urlParts.shift() || '';
     return {
-      url: this.context.location.href,
+      url: url.replace(/^\s+|\s+$/gm, ''),
+      hash: hash.replace(/^\s+|\s+$/gm, ''),
       referrer: this.context.document.referrer,
     };
   }
