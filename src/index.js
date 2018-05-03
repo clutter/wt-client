@@ -22,11 +22,11 @@ export const QUEUE_CONTINUED = 'queue:continued';
 
 const COOKIE_KEY = 'wt_visitor_token';
 
-const resetVisitorToken = (config = {}) => {
+const retrieveVisitorToken = (config = {}) => {
   let token = Cookie.get(COOKIE_KEY);
   if (!token) {
     token = uuid();
-    Cookie.set(COOKIE_KEY, uuid(), config);
+    Cookie.set(COOKIE_KEY, token, config);
   }
   return token;
 };
@@ -74,9 +74,11 @@ export class WT {
 
   initialize(payload) {
     this.wtConfig = resolveMethod(payload, this.wtConfig, this);
-    if (this.wtConfig.cookies) {
-      resetVisitorToken(this.wtConfig.cookies);
-    }
+    if (this.wtConfig.cookies) { this.getVisitorToken(); }
+  }
+
+  getVisitorToken() {
+    return retrieveVisitorToken(this.wtConfig.cookies);
   }
 
   getLoaderImage() {

@@ -132,7 +132,7 @@ This can be changed by initializing `wt` with a different `domain` and `expires`
 ```js
 wt('initial', {
   cookies: {
-    domain: '.',
+    domain: '.example.com',
     expires: 365,
   }
 })
