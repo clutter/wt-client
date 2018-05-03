@@ -6,7 +6,7 @@ import QS from 'qs';
 import { omit, assign } from 'lodash';
 import { withContext, DEBOUNCE_MIN, WT, SEND_COMPLETED } from '../src';
 
-import { debounce } from '../src/utils';
+import { debounce, uuid } from '../src/utils';
 
 const LOAD_WAIT = 100;
 const BUFFER = 10;
@@ -320,5 +320,18 @@ describe('utils.debounce', () => {
       assert(flipped === false);
       done();
     }, 1);
+  });
+});
+
+describe('utils.uuid', () => {
+  it('matches the uuid format', () => {
+    const value = uuid();
+    assert.match(value, /^\w{8}-\w{4}-\w{4}-\w{4}-\w{12}$/, 'UUIDs must be formatted as a UUID');
+  });
+
+  it('generates a unique uuid', () => {
+    const a = uuid();
+    const b = uuid();
+    assert(a !== b, 'UUIDs must be unique');
   });
 });
