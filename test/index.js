@@ -1,14 +1,19 @@
+/* eslint-disable no-underscore-dangle */
+/* eslint-disable no-plusplus */
+
 import { assert } from 'chai';
 import QS from 'qs';
 import { omit, assign } from 'lodash';
-import { withContext, DEBOUNCE_MIN, Wt, SEND_COMPLETED } from '../src';
+import { withContext, DEBOUNCE_MIN, WT, SEND_COMPLETED } from '../src';
 
-import { debounce } from '../src/utils';
+import { debounce, uuid } from '../src/utils';
 
 const LOAD_WAIT = 100;
 const BUFFER = 10;
 
 const HREF = 'https://www.test.url/test-path?hello=world&hi=mom';
+
+let loggedEvents = [];
 
 const context = {
   location: {
@@ -19,7 +24,7 @@ const context = {
     referrer: 'test',
   },
   navigator: {
-    userAgent: 'test agent'
+    userAgent: 'test agent',
   },
   Image: class {
     get src() {
@@ -46,11 +51,10 @@ const context = {
       }, LOAD_WAIT);
       this._url = url;
     }
-  }
+  },
 };
 
-let loggedEvents = [];
-let wt = withContext(context);
+const wt = withContext(context);
 
 const parseLoggedEvents = () => {
   const parsedEvents = loggedEvents.map(url => QS.parse(url.split('?').pop()));
@@ -61,7 +65,7 @@ const parseLoggedEvents = () => {
     }, ['rts']),
   );
   return withoutTs
-    .map(e => e.events.map(e => assign({}, e.metadata, { url: e.url })))
+    .map(e => e.events.map(event => assign({}, event.metadata, { url: event.url })))
     .reduce((memo, arr) => (Array.isArray(arr) ? [...memo, ...arr] : [...memo, arr]), []);
 };
 
@@ -78,6 +82,7 @@ function runEvents(events, cb, timeOffset = 0, wtInstance = wt) {
 
 describe('wt-tracker.', () => {
   let initialized = false;
+
   before(() => {
     initialized = true;
     wt('initialize', {
@@ -91,43 +96,46 @@ describe('wt-tracker.', () => {
     if (!initialized) {
       return;
     }
-    return wt('clear');
+    wt('clear');
   });
 
   it('should load without error', (done) => {
     wt('test', { hello: 'world' });
     setTimeout(done, LOAD_WAIT + DEBOUNCE_MIN + BUFFER);
   });
+
   it('should log one call', (done) => {
-    const events = [{hello: 'world', url: HREF}];
+    const events = [{ hello: 'world', url: HREF }];
     runEvents(events, (result) => {
       assert.deepEqual(events, result);
       done();
     });
   });
+
   it('should handle after first load events', (done) => {
-    const events = [{hello: 'world', url: HREF}];
+    const events = [{ hello: 'world', url: HREF }];
     let touchedCount = 0;
     wt('resetFirstLoad');
     wt('afterFirstLoad', () => {
-      touchedCount ++;
+      touchedCount++;
     });
     assert.equal(touchedCount, 0);
     runEvents(events, () => {
       assert.equal(touchedCount, 1);
       wt('afterFirstLoad', () => {
-        touchedCount ++;
+        touchedCount++;
       });
       assert.equal(touchedCount, 2);
       done();
     });
     wt('resetFirstLoad');
     wt('afterFirstLoad', () => {
-      touchedCount ++;
+      touchedCount++;
     });
   });
+
   it('should hit the event emitter', (done) => {
-    const events = [{hello: 'world', url: HREF}];
+    const events = [{ hello: 'world', url: HREF }];
     let touched = false;
     const unsub = wt('subscribe', SEND_COMPLETED, () => {
       touched = true;
@@ -138,8 +146,9 @@ describe('wt-tracker.', () => {
       done();
     });
   });
+
   it('should respect unsub', (done) => {
-    const events = [{hello: 'world', url: HREF}];
+    const events = [{ hello: 'world', url: HREF }];
     let touched = false;
     const unsub = wt('subscribe', SEND_COMPLETED, () => {
       touched = true;
@@ -150,8 +159,9 @@ describe('wt-tracker.', () => {
       done();
     });
   });
+
   it('should enqueue calls while networking', () => {
-    const events = [{hello: 'world', url: HREF}];
+    const events = [{ hello: 'world', url: HREF }];
     events.forEach(event => wt('event', event));
     wt('flush');
     // now loading
@@ -164,10 +174,10 @@ describe('wt-tracker.', () => {
         const parsedEvents = parseLoggedEvents();
         assert.deepEqual(events.concat(events), parsedEvents);
       });
-
   });
+
   it('should update defaults', (done) => {
-    const events = [{hello: 'world', url: HREF}];
+    const events = [{ hello: 'world', url: HREF }];
 
     wt('set', { userId: '1' });
 
@@ -176,8 +186,9 @@ describe('wt-tracker.', () => {
       done();
     });
   });
+
   it('should handle errors', (done) => {
-    const events = [{error: true}];
+    const events = [{ error: true }];
 
     const inst = wt('instance');
 
@@ -186,13 +197,16 @@ describe('wt-tracker.', () => {
       done();
     });
   });
+
+  /* eslint-disable no-shadow */
+
   it('should not double load', (done) => {
     const wt = withContext(context);
     const inst = wt('instance');
     inst.sendToServer = () => waitFor(100);
     const events = [];
-    for(let i = 0; i < 1000; i ++) {
-      events.push({hello: 'world', url: HREF});
+    for (let i = 0; i < 1000; i++) {
+      events.push({ hello: 'world', url: HREF });
     }
     events.forEach(event => wt('event', event));
     wt('flush');
@@ -203,34 +217,40 @@ describe('wt-tracker.', () => {
       done();
     }, 1);
   });
+
   it('should process an empty queue', (done) => {
     const wt = withContext(context);
     const inst = wt('instance');
     inst.sendToServer = () => waitFor(1);
     const events = [];
-    for(let i = 0; i < 10; i ++) {
-      events.push({hello: 'world', url: HREF});
+    for (let i = 0; i < 10; i++) {
+      events.push({ hello: 'world', url: HREF });
     }
     events.forEach(event => wt('event', event));
     wt('flush');
     setTimeout(() => {
       inst.sendToServer = () => {
-        throw 'Should not call';
+        throw new Error('Should not call');
       };
       inst.processEvents();
       setTimeout(() => done(), 100);
     }, 100);
   });
+
+  /* eslint-enable no-shadow */
+
   it('should update config', () => {
     const config = { hello: 'world', url: HREF };
     wt('config', config);
     const inst = wt('instance');
     assert.equal(inst.wtConfig.hello, config.hello);
   });
+
   it('should return an instance', () => {
     const inst = wt('instance');
-    assert(inst instanceof Wt);
+    assert(inst instanceof WT);
   });
+
   it('should guess root url based on context', () => {
     const inst = wt('instance');
     const currentConfig = inst.wtConfig;
@@ -250,6 +270,7 @@ describe('wt-tracker.', () => {
     assert.equal(url, trackerDomain);
     wt('initialize', currentConfig);
   });
+
   it('should update defaults with a function', () => {
     const inst = wt('instance');
     const paramDefaults = { userId: '1' };
@@ -258,7 +279,7 @@ describe('wt-tracker.', () => {
   });
 });
 
-describe('utils.', () => {
+describe('utils.debounce', () => {
   it('debounce should work', (done) => {
     let flipped = false;
     const flipTrue = () => {
@@ -269,8 +290,9 @@ describe('utils.', () => {
     setTimeout(() => {
       assert(flipped);
       done();
-    }, DEBOUNCE_MIN + 1)
+    }, DEBOUNCE_MIN + 1);
   });
+
   it('debounce flush should work', (done) => {
     let flipped = false;
     const flipTrue = () => {
@@ -282,8 +304,9 @@ describe('utils.', () => {
     setTimeout(() => {
       assert(flipped);
       done();
-    }, 1)
+    }, 1);
   });
+
   it('debounce flush should not work with clear', (done) => {
     let flipped = false;
     const flipTrue = () => {
@@ -296,6 +319,19 @@ describe('utils.', () => {
     setTimeout(() => {
       assert(flipped === false);
       done();
-    }, 1)
+    }, 1);
+  });
+});
+
+describe('utils.uuid', () => {
+  it('matches the uuid format', () => {
+    const value = uuid();
+    assert.match(value, /^\w{8}-\w{4}-\w{4}-\w{4}-\w{12}$/, 'UUIDs must be formatted as a UUID');
+  });
+
+  it('generates a unique uuid', () => {
+    const a = uuid();
+    const b = uuid();
+    assert(a !== b, 'UUIDs must be unique');
   });
 });

@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## [v1.0.8] - Monday, April 30, 2018
+
+ - Generate client cookie for WT
+
 ## [v1.0.7] - Monday, March 5, 2018
 
  - Added first load handler
@@ -17,9 +21,9 @@ All notable changes to this project will be documented in this file.
 ## [v1.0.4] - Thursday, February 22, 2018
 
  - Added referrer as a value sent to the recipient image
- 
+
  ## [v1.0.3] - Thursday, February 11, 2018
- 
+
   - Added better defaults for context
 
 ## [v1.0.2] - Thursday, February 8, 2018
