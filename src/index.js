@@ -19,8 +19,7 @@ export const SEND_COMPLETED = 'send:completed';
 export const QUEUE_COMPLETED = 'queue:completed';
 export const QUEUE_CONTINUED = 'queue:continued';
 
-export class Wt {
-  // eslint-disable-next-line no-undef
+export class WT {
   constructor(context) {
     this.emitter = new EventEmitter();
     this.wtConfig = {};
@@ -33,6 +32,7 @@ export class Wt {
     });
     this.resetFirstLoad();
   }
+
   resetFirstLoad() {
     this.firstLoaded = false;
     if (this.unsubFirstLoadCb) {
@@ -47,6 +47,7 @@ export class Wt {
       delete this.unsubFirstLoad;
     });
   }
+
   afterFirstLoad(cb) {
     if (this.firstLoaded) {
       cb();
@@ -58,24 +59,29 @@ export class Wt {
       });
     }
   }
+
   initialize(payload) {
     this.wtConfig = resolveMethod(payload, this.wtConfig, this);
   }
+
   getLoaderImage() {
     return new this.context.Image();
   }
+
   getUrl() {
     if (this.wtConfig.trackerUrl) {
       return this.wtConfig.trackerUrl;
     }
     return `${this.getRoot()}/track.gif`;
   }
+
   getRoot() {
     if (this.wtConfig.trackerDomain) {
       return this.wtConfig.trackerDomain;
     }
     return `//${this.context.location.hostname}`;
   }
+
   sendToServer(payload) {
     this.loaderImage = this.loaderImage || this.getLoaderImage();
     const query = QS.stringify(
@@ -97,6 +103,7 @@ export class Wt {
       this.loaderImage.src = `${this.getUrl()}?${query}`;
     });
   }
+
   getRequestEnvironmentArgs() {
     return {
       dimensions: {
@@ -107,12 +114,14 @@ export class Wt {
       rts: (new Date()).valueOf(),
     };
   }
+
   getEventEnvironmentArgs() {
     return {
       url: this.context.location.href,
       referrer: this.context.document.referrer,
     };
   }
+
   processEvents() {
     if (this.loading) {
       return;
@@ -142,6 +151,7 @@ export class Wt {
         this.loading = false;
       });
   }
+
   handleEvent(kind, payload = {}) {
     const {
       category,
@@ -162,34 +172,41 @@ export class Wt {
     }, isNil));
     this.signalEventChange();
   }
+
   signalEventChange() {
     this.processEventsDebounced();
   }
+
   flush() {
     this.processEventsDebounced.flush();
   }
+
   clear() {
     this.paramDefaults = {};
   }
+
   set(payload) {
     assign(this.paramDefaults, resolveMethod(payload, this.paramDefaults, this));
   }
+
   config(payload) {
     assign(this.wtConfig, resolveMethod(payload, this.wtConfig, this));
   }
+
   subscribe(eventName, cb) {
     this.emitter.on(eventName, cb);
     return () => {
       this.emitter.removeListener(eventName, cb);
     };
   }
+
   instance() {
     return this;
   }
 }
 
 export function withContext(context) {
-  const wt = new Wt(context);
+  const wt = new WT(context);
   return function run(cmd, ...args) {
     if (wt[cmd]) {
       return wt[cmd](...args);
