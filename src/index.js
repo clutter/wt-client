@@ -1,5 +1,5 @@
 import QS from 'qs';
-import { Cookie } from 'js-cookie';
+import Cookie from 'js-cookie';
 import EventEmitter from 'events';
 import { debounce, isFunction, assign, omitBy, isNil, uuid } from './utils';
 
