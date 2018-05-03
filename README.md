@@ -124,6 +124,20 @@ wt('initialize', {
 });
 ```
 
+### How to configure the tracking cookie
+
+By default, `wt` generates a cookie as a pixel to keep track of a visitor.
+This can be changed by initializing `wt` with a different `domain` and `expires` prior to tracking:
+
+```js
+wt('initial', {
+  cookies: {
+    domain: '.',
+    expires: 365,
+  }
+})
+```
+
 ### How to track more data for each event
 
 Any object can be passed when tracking an event, for instance:

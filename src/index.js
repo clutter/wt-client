@@ -1,6 +1,7 @@
 import QS from 'qs';
+import { Cookie } from 'js-cookie';
 import EventEmitter from 'events';
-import { debounce, isFunction, assign, omitBy, isNil } from './utils';
+import { debounce, isFunction, assign, omitBy, isNil, uuid } from './utils';
 
 export const DEBOUNCE_MIN = 500;
 export const DEBOUNCE_MAX = 1500;
@@ -18,6 +19,17 @@ export const SEND_STARTED = 'send:started';
 export const SEND_COMPLETED = 'send:completed';
 export const QUEUE_COMPLETED = 'queue:completed';
 export const QUEUE_CONTINUED = 'queue:continued';
+
+const COOKIE_KEY = 'wt_visitor_token';
+
+const resetVisitorToken = (config = {}) => {
+  let token = Cookie.get(COOKIE_KEY);
+  if (!token) {
+    token = uuid();
+    Cookie.set(COOKIE_KEY, uuid(), config);
+  }
+  return token;
+};
 
 export class WT {
   constructor(context) {
@@ -62,6 +74,9 @@ export class WT {
 
   initialize(payload) {
     this.wtConfig = resolveMethod(payload, this.wtConfig, this);
+    if (this.wtConfig.cookies) {
+      resetVisitorToken(this.wtConfig.cookies);
+    }
   }
 
   getLoaderImage() {

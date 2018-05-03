@@ -15,6 +15,7 @@
   },
   "main": "lib/index.js",
   "dependencies": {
+    "js-cookie": "^2.2.0",
     "qs": "^6.5.1"
   },
   "files": [
