@@ -15,6 +15,12 @@ const HREF = 'https://www.test.url/test-path?hello=world&hi=mom';
 
 let loggedEvents = [];
 
+const mobileContext = {
+  navigator: {
+    userAgent: 'Mobile Phone',
+  },
+};
+
 const context = {
   location: {
     hostname: 'www.test.url',
@@ -276,6 +282,11 @@ describe('wt-tracker.', () => {
     const paramDefaults = { userId: '1' };
     wt('set', () => (paramDefaults));
     assert.deepEqual(paramDefaults, inst.paramDefaults);
+  });
+
+  it('should indicate it is mobile', () => {
+    const mobileWt = withContext(mobileContext);
+    assert(mobileWt('isMobile'), true);
   });
 });
 

@@ -10,6 +10,7 @@ const DEFAULT_STRINGIFY_OPTIONS = { arrayFormat: 'brackets', skipNulls: true, en
 
 // global constants
 const BATCH_MAX = 100;
+const MOBILE_INDICATOR = 'Mobi';
 
 function resolveMethod(val, ...args) {
   return isFunction(val) ? val(...args) : val;
@@ -137,6 +138,10 @@ export class WT {
       url: this.context.location.href,
       referrer: this.context.document.referrer,
     };
+  }
+
+  isMobile() {
+    return this.context.navigator.userAgent.includes(MOBILE_INDICATOR);
   }
 
   processEvents() {
