@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## [v1.0.11] - Wednesday, May 30, 2018
+
+ - Add new fields to payload sent to WT server: page_name, container, position, object_type and object_name.
+
 ## [v1.0.10] - Thursday, May 3, 2018
 
  - Stop using promises for legacy support
