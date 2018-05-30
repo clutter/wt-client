@@ -176,6 +176,11 @@ export class WT {
       action,
       label,
       value,
+      pageName,
+      container,
+      position,
+      objectType,
+      objectName,
       ...args
     } = payload;
     this.eventQueue.push(omitBy({
@@ -184,6 +189,11 @@ export class WT {
       action,
       label,
       value,
+      page_name: pageName,
+      container,
+      position,
+      object_type: objectType,
+      object_name: objectName,
       metadata: assign({}, args, this.paramDefaults),
       ...this.getEventEnvironmentArgs(),
       ts: (new Date()).valueOf(),
