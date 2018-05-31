@@ -2,7 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
-## [v1.0.8] - Thursday, May 3, 2018
+## [v1.0.10] - Thursday, May 3, 2018
+
+ - Stop using promises for legacy support
+
+## [v1.0.9] - Thursday, May 3, 2018
 
  - Fix for NPM import syntax
 

@@ -99,26 +99,24 @@ export class WT {
     return `//${this.context.location.hostname}`;
   }
 
-  sendToServer(payload) {
+  sendToServer(payload, resolve, reject) {
     this.loaderImage = this.loaderImage || this.getLoaderImage();
     const query = QS.stringify(
       payload,
       { addQueryPrefix: false, ...(this.wtConfig.stringifyOptions || DEFAULT_STRINGIFY_OPTIONS) },
     );
 
-    return new Promise((resolve, reject) => {
-      this.loaderImage.onload = () => {
-        delete this.loaderImage.onerror;
-        delete this.loaderImage.onload;
-        resolve();
-      };
-      this.loaderImage.onerror = () => {
-        delete this.loaderImage.onerror;
-        delete this.loaderImage.onload;
-        reject();
-      };
-      this.loaderImage.src = `${this.getUrl()}?${query}`;
-    });
+    this.loaderImage.onload = () => {
+      delete this.loaderImage.onerror;
+      delete this.loaderImage.onload;
+      resolve();
+    };
+    this.loaderImage.onerror = () => {
+      delete this.loaderImage.onerror;
+      delete this.loaderImage.onload;
+      reject();
+    };
+    this.loaderImage.src = `${this.getUrl()}?${query}`;
   }
 
   getRequestEnvironmentArgs() {
@@ -152,21 +150,24 @@ export class WT {
     const payload = assign({ events }, this.getRequestEnvironmentArgs());
     this.loading = true;
     this.emitter.emit(SEND_STARTED);
-    this.sendToServer(payload)
-      .then(() => {
-        this.emitter.emit(SEND_COMPLETED);
-        if (this.eventQueue.length) {
-          // eslint-disable-next-line no-use-before-define
-          this.processEventsDebounced();
-          this.emitter.emit(QUEUE_CONTINUED);
-        } else {
-          this.emitter.emit(QUEUE_COMPLETED);
-        }
-        this.loading = false;
-      })
-      .catch(() => {
-        this.loading = false;
-      });
+
+    const resolve = () => {
+      this.emitter.emit(SEND_COMPLETED);
+      if (this.eventQueue.length) {
+        // eslint-disable-next-line no-use-before-define
+        this.processEventsDebounced();
+        this.emitter.emit(QUEUE_CONTINUED);
+      } else {
+        this.emitter.emit(QUEUE_COMPLETED);
+      }
+      this.loading = false;
+    };
+
+    const reject = () => {
+      this.loading = false;
+    };
+
+    this.sendToServer(payload, resolve, reject);
   }
 
   handleEvent(kind, payload = {}) {
