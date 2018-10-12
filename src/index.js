@@ -39,6 +39,7 @@ export class WT {
     this.paramDefaults = {};
     this.eventQueue = [];
     this.loading = false;
+    this.elapsedTime = 0;
     this.processEventsDebounced = debounce(this.processEvents.bind(this), DEBOUNCE_MIN, {
       maxWait: DEBOUNCE_MAX,
     });
@@ -73,8 +74,20 @@ export class WT {
   }
 
   initialize(payload) {
+    this.elapsedTime = 0;
     this.wtConfig = resolveMethod(payload, this.wtConfig, this);
     if (this.wtConfig.cookies) { this.getVisitorToken(); }
+  }
+
+  pageview(...payload) {
+    const t = this;
+    t.handleEvent('pageview', ...payload);
+    if (t.wtConfig.pingInterval) {
+      setInterval(() => {
+        t.elapsedTime += t.wtConfig.pingInterval / 1000;
+        t.handleEvent('ping', { value: t.elapsedTime });
+      }, t.wtConfig.pingInterval);
+    }
   }
 
   getVisitorToken() {
