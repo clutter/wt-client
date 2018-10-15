@@ -88,6 +88,7 @@ describe('wt-tracker.', () => {
     wt('initialize', {
       trackerUrl: 'pixel.test.url/pixel.gif',
       stringifyOptions: {},
+      pingInterval: 100,
     });
   });
 
@@ -276,6 +277,14 @@ describe('wt-tracker.', () => {
     const paramDefaults = { userId: '1' };
     wt('set', () => (paramDefaults));
     assert.deepEqual(paramDefaults, inst.paramDefaults);
+  });
+
+  it('should track ping event', () => {
+    wt('pageview');
+    const inst = wt('instance');
+    setTimeout(() => {
+      assert.equal(4, inst.eventQueue.length);
+    }, 400);
   });
 });
 
