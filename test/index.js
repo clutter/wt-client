@@ -277,6 +277,13 @@ describe('wt-tracker.', () => {
     wt('set', () => (paramDefaults));
     assert.deepEqual(paramDefaults, inst.paramDefaults);
   });
+
+  it('should have uuid set for event', () => {
+    wt('pageview');
+    const inst = wt('instance');
+    const events = inst.eventQueue;
+    assert.match(events[0].page_uuid, /^\w{8}-\w{4}-\w{4}-\w{4}-\w{12}$/, 'UUIDs must be formatted as a UUID');
+  });
 });
 
 describe('utils.debounce', () => {
