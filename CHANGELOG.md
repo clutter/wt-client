@@ -1,8 +1,11 @@
 # WT
 
 All notable changes to this project will be documented in this file.
+## [v1.0.13] - Wednesday, Dec 13, 2018
 
-## [v1.0.12] - Wednesday, May 30, 2018
+ - Generate page uuid if it not present.
+
+## [v1.0.12] - Wednesday, Dec 13, 2018
 
  - Add page uuid to events.
 
