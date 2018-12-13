@@ -21,12 +21,21 @@ export const QUEUE_COMPLETED = 'queue:completed';
 export const QUEUE_CONTINUED = 'queue:continued';
 
 const COOKIE_KEY = 'wt_visitor_token';
+const PAGE_UUID = 'wt_page_uuid';
 
 const retrieveVisitorToken = (config = {}) => {
   let token = Cookie.get(COOKIE_KEY);
   if (!token) {
     token = uuid();
     Cookie.set(COOKIE_KEY, token, config);
+  }
+  return token;
+};
+
+const retrievePageUUIDToken = () => {
+  let token = Cookie.get(PAGE_UUID);
+  if (!token) {
+    token = uuid();
   }
   return token;
 };
@@ -39,6 +48,7 @@ export class WT {
     this.paramDefaults = {};
     this.eventQueue = [];
     this.loading = false;
+    this.pageUuid = null;
     this.processEventsDebounced = debounce(this.processEvents.bind(this), DEBOUNCE_MIN, {
       maxWait: DEBOUNCE_MAX,
     });
@@ -74,11 +84,19 @@ export class WT {
 
   initialize(payload) {
     this.wtConfig = resolveMethod(payload, this.wtConfig, this);
-    if (this.wtConfig.cookies) { this.getVisitorToken(); }
+    if (this.wtConfig.cookies) {
+      this.getUUIDToken();
+      this.getVisitorToken();
+    }
   }
 
   getVisitorToken() {
     return retrieveVisitorToken(this.wtConfig.cookies);
+  }
+
+  getUUIDToken() {
+    this.uuid = retrievePageUUIDToken();
+    return this.uuid;
   }
 
   getLoaderImage() {
@@ -134,6 +152,7 @@ export class WT {
     return {
       url: this.context.location.href,
       referrer: this.context.document.referrer,
+      page_uuid: this.pageUuid,
     };
   }
 

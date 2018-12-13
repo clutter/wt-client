@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## [v1.0.12] - Wednesday, May 30, 2018
+
+ - Add page uuid to events.
+
 ## [v1.0.11] - Wednesday, May 30, 2018
 
  - Add new fields to payload sent to WT server: page_name, container, position, object_type and object_name.
