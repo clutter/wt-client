@@ -152,7 +152,7 @@ export class WT {
     return {
       url: this.context.location.href,
       referrer: this.context.document.referrer,
-      page_uuid: this.pageUuid,
+      page_uuid: this.pageUuid || this.getUUIDToken(),
     };
   }
 
