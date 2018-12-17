@@ -279,10 +279,15 @@ describe('wt-tracker.', () => {
   });
 
   it('should have uuid set for event', () => {
-    wt('pageview');
     const inst = wt('instance');
+    const currentConfig = inst.wtConfig;
+    currentConfig.cookies = true;
+    wt('initialize', currentConfig);
+    wt('pageview');
     const events = inst.eventQueue;
     assert.match(events[0].page_uuid, /^\w{8}-\w{4}-\w{4}-\w{4}-\w{12}$/, 'UUIDs must be formatted as a UUID');
+    wt('event');
+    assert.match(events[1].page_uuid, /^\w{8}-\w{4}-\w{4}-\w{4}-\w{12}$/, 'UUIDs must be formatted as a UUID');
   });
 });
 
