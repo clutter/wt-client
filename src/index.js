@@ -32,13 +32,9 @@ const retrieveVisitorToken = (config = {}) => {
   return token;
 };
 
-const retrievePageUUIDToken = () => {
-  let token = Cookie.get(PAGE_UUID);
-  if (!token) {
-    token = uuid();
-  }
-  return token;
-};
+const retrievePageUUIDToken = () => (
+  Cookie.get(PAGE_UUID) || uuid()
+);
 
 export class WT {
   constructor(context) {
@@ -95,8 +91,8 @@ export class WT {
   }
 
   getUUIDToken() {
-    this.uuid = retrievePageUUIDToken();
-    return this.uuid;
+    this.pageUuid = retrievePageUUIDToken();
+    return this.pageUuid;
   }
 
   getLoaderImage() {
@@ -152,7 +148,7 @@ export class WT {
     return {
       url: this.context.location.href,
       referrer: this.context.document.referrer,
-      page_uuid: this.pageUuid || this.getUUIDToken(),
+      page_uuid: this.pageUuid,
     };
   }
 
