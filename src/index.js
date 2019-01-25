@@ -20,20 +20,24 @@ export const SEND_COMPLETED = 'send:completed';
 export const QUEUE_COMPLETED = 'queue:completed';
 export const QUEUE_CONTINUED = 'queue:continued';
 
-const COOKIE_KEY = 'wt_visitor_token';
-const PAGE_UUID = 'wt_page_uuid';
+const VISITOR_TOKEN_KEY = 'wt_visitor_token';
+const PAGE_UUID_KEY = 'wt_page_uuid';
 
-const retrieveVisitorToken = (config = {}) => {
-  let token = Cookie.get(COOKIE_KEY);
+function retrieveFromCookie(key, config = {}) {
+  let token = Cookie.get(key);
   if (!token) {
     token = uuid();
-    Cookie.set(COOKIE_KEY, token, config);
+    Cookie.set(key, token, config);
   }
   return token;
-};
+}
+
+const retrieveVisitorToken = (config = {}) => (
+  retrieveFromCookie(VISITOR_TOKEN_KEY, config)
+);
 
 const retrievePageUUIDToken = () => (
-  Cookie.get(PAGE_UUID) || uuid()
+  retrieveFromCookie(PAGE_UUID_KEY)
 );
 
 export class WT {

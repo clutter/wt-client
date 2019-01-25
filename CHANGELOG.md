@@ -1,6 +1,10 @@
 # WT
 
 All notable changes to this project will be documented in this file.
+## [v1.0.15] - Monday, Jan 28, 2019
+
+  - Set wt_page_uuid cookie if not present
+
 ## [v1.0.14] - Monday, Dec 17, 2018
 
  - Fix page uuid having different uuid for unbounce.
