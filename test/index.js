@@ -290,6 +290,7 @@ describe('wt-tracker.', () => {
     assert.match(events[1].page_uuid, /^\w{8}-\w{4}-\w{4}-\w{4}-\w{12}$/, 'UUIDs must be formatted as a UUID');
   });
 });
+// TODO: write test to check cookie is properly set for wt_visitor_token and wt_page_uuid;
 
 describe('utils.debounce', () => {
   it('debounce should work', (done) => {
