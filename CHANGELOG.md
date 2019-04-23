@@ -1,6 +1,12 @@
 # WT
 
 All notable changes to this project will be documented in this file.
+
+## [v1.0.16] - Wednesday, April 24, 2019
+
+  - If cookie is not set it will set with expiration of 20 years
+  - Also, if application calls wt('initialize') then default cookie expiration will not apply and must be provided
+
 ## [v1.0.15] - Monday, Jan 28, 2019
 
   - Set wt_page_uuid cookie if not present
