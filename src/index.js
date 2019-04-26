@@ -10,6 +10,7 @@ const DEFAULT_STRINGIFY_OPTIONS = { arrayFormat: 'brackets', skipNulls: true, en
 
 // global constants
 const BATCH_MAX = 100;
+const EXPIRES_IN_DAYS = 7300; // Expires in 20 years
 
 function resolveMethod(val, ...args) {
   return isFunction(val) ? val(...args) : val;
@@ -43,7 +44,7 @@ const retrievePageUUIDToken = () => (
 export class WT {
   constructor(context) {
     this.emitter = new EventEmitter();
-    this.wtConfig = {};
+    this.wtConfig = { cookies: { expires: EXPIRES_IN_DAYS } };
     this.context = context;
     this.paramDefaults = {};
     this.eventQueue = [];
