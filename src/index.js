@@ -33,7 +33,13 @@ function retrieveFromCookie(key, config = {}) {
   return token;
 }
 
-const retrieveVisitorToken = (config = {}) => (
+const retrieveFromQueryString = (search) => {
+  const qs = QS.parse(search, { ignoreQueryPrefix: true });
+  return qs['wvt'];
+};
+
+const retrieveVisitorToken = (config = {}, search) => (
+  retrieveFromQueryString(search) ||
   retrieveFromCookie(VISITOR_TOKEN_KEY, config)
 );
 
@@ -92,7 +98,10 @@ export class WT {
   }
 
   getVisitorToken() {
-    return retrieveVisitorToken(this.wtConfig.cookies);
+    return retrieveVisitorToken(
+      this.wtConfig.cookies,
+      this.context.location && this.context.location.search,
+    );
   }
 
   getUUIDToken() {
@@ -146,6 +155,9 @@ export class WT {
       },
       agent: this.context.navigator.userAgent,
       rts: (new Date()).valueOf(),
+      wvt: retrieveFromQueryString(
+        this.context.location && this.context.location.search,
+      ),
     };
   }
 
