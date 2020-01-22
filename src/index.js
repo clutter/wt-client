@@ -35,7 +35,7 @@ function retrieveFromCookie(key, config = {}) {
 
 const retrieveFromQueryString = (search) => {
   const qs = QS.parse(search, { ignoreQueryPrefix: true });
-  return qs['wvt'];
+  return qs.wvt;
 };
 
 const retrieveVisitorToken = (config = {}, search) => (
