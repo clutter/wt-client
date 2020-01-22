@@ -19,6 +19,7 @@ const context = {
   location: {
     hostname: 'www.test.url',
     href: HREF,
+    search: 'wvt=testvisitortoken',
   },
   document: {
     referrer: 'test',
@@ -290,7 +291,16 @@ describe('wt-tracker.', () => {
     assert.match(events[1].page_uuid, /^\w{8}-\w{4}-\w{4}-\w{4}-\w{12}$/, 'UUIDs must be formatted as a UUID');
   });
 });
+
 // TODO: write test to check cookie is properly set for wt_visitor_token and wt_page_uuid;
+describe('wt-visitor-token', () => {
+  it('should favor the visitor token in the query string', () => {
+    const qs = QS.parse(context.location.search);
+    const wvt = qs.wvt;
+
+    assert.equal(wt('getVisitorToken'), wvt);
+  });
+});
 
 describe('utils.debounce', () => {
   it('debounce should work', (done) => {
