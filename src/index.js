@@ -203,6 +203,7 @@ export class WT {
   }
 
   handleEvent(kind, payload = {}) {
+    const payloadWithDefaults = assign({}, this.paramDefaults, payload);
     const {
       category,
       action,
@@ -215,7 +216,7 @@ export class WT {
       objectName,
       customerID,
       ...args
-    } = payload;
+    } = payloadWithDefaults;
     this.eventQueue.push(omitBy({
       kind,
       category,
@@ -228,7 +229,7 @@ export class WT {
       object_type: objectType,
       object_name: objectName,
       customer_id: customerID,
-      metadata: assign({}, args, this.paramDefaults),
+      metadata: args,
       ...this.getEventEnvironmentArgs(),
       ts: (new Date()).valueOf(),
     }, isNil));
