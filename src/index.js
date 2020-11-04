@@ -213,6 +213,7 @@ export class WT {
       position,
       objectType,
       objectName,
+      customerID,
       ...args
     } = payload;
     this.eventQueue.push(omitBy({
@@ -226,6 +227,7 @@ export class WT {
       position,
       object_type: objectType,
       object_name: objectName,
+      customer_id: customerID,
       metadata: assign({}, args, this.paramDefaults),
       ...this.getEventEnvironmentArgs(),
       ts: (new Date()).valueOf(),
