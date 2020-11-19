@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [v1.1.1] - Thursday, November 19, 2020
+
+- Update 'SEND_STARTED' event to emit after it has actually started sending.
+- Update paramDefaults to be overridden by event data instead of the other way around.
+
 ## [v1.1.0] - Thursday, December 26, 2019
 
 - If the visitor token is present in the query string, favor over the cookie
