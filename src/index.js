@@ -145,6 +145,7 @@ export class WT {
       reject();
     };
     this.loaderImage.src = `${this.getUrl()}?${query}`;
+    this.emitter.emit(SEND_STARTED);
   }
 
   getRequestEnvironmentArgs() {
@@ -181,7 +182,6 @@ export class WT {
     }
     const payload = assign({ events }, this.getRequestEnvironmentArgs());
     this.loading = true;
-    this.emitter.emit(SEND_STARTED);
 
     const resolve = () => {
       this.emitter.emit(SEND_COMPLETED);
