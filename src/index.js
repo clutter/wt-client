@@ -226,7 +226,7 @@ export class WT {
       position,
       object_type: objectType,
       object_name: objectName,
-      metadata: assign({}, args, this.paramDefaults),
+      metadata: assign({}, this.paramDefaults, args),
       ...this.getEventEnvironmentArgs(),
       ts: (new Date()).valueOf(),
     }, isNil));
