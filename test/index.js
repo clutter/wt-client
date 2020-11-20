@@ -3,7 +3,7 @@
 
 import { assert } from 'chai';
 import QS from 'qs';
-import { omit, assign } from 'lodash';
+import { omit } from 'lodash';
 import { withContext, DEBOUNCE_MIN, WT, SEND_COMPLETED } from '../src';
 
 import { debounce, uuid } from '../src/utils';
@@ -66,7 +66,7 @@ const parseLoggedEvents = () => {
     }, ['rts']),
   );
   return withoutTs
-    .map(e => e.events.map(event => assign({}, event.metadata, { url: event.url })))
+    .map(e => e.events)
     .reduce((memo, arr) => (Array.isArray(arr) ? [...memo, ...arr] : [...memo, arr]), []);
 };
 
@@ -108,7 +108,17 @@ describe('wt-tracker.', () => {
   it('should log one call', (done) => {
     const events = [{ hello: 'world', url: HREF }];
     runEvents(events, (result) => {
-      assert.deepEqual(events, result);
+      assert.deepEqual(result, [
+        {
+          kind: 'event',
+          metadata: {
+            hello: 'world',
+            url: HREF,
+          },
+          referrer: 'test',
+          url: HREF,
+        },
+      ]);
       done();
     });
   });
@@ -173,17 +183,59 @@ describe('wt-tracker.', () => {
       .then(() => waitFor(1 + LOAD_WAIT + BUFFER + DEBOUNCE_MIN))
       .then(() => {
         const parsedEvents = parseLoggedEvents();
-        assert.deepEqual(events.concat(events), parsedEvents);
+        assert.deepEqual(parsedEvents, [
+          {
+            kind: 'event',
+            metadata: {
+              hello: 'world',
+              url: HREF,
+            },
+            referrer: 'test',
+            url: HREF,
+          },
+          {
+            kind: 'event',
+            metadata: {
+              hello: 'world',
+              url: HREF,
+            },
+            referrer: 'test',
+            url: HREF,
+          },
+        ]);
       });
   });
 
-  it('should update defaults', (done) => {
-    const events = [{ hello: 'world', url: HREF }];
+  it('should override metadata defaults with event data', (done) => {
+    const events = [{ pageName: 'Account', direction: 'up' }, { objectName: 'Box', objectType: 'Button', meta: 'new' }];
 
-    wt('set', { userId: '1' });
+    wt('set', { meta: 'default', page_name: 'Settings' });
 
     runEvents(events, (result) => {
-      assert.deepEqual(events.map(r => Object.assign(r, { userId: '1' })), result);
+      assert.deepEqual(result, [
+        {
+          kind: 'event',
+          page_name: 'Account',
+          metadata: {
+            direction: 'up',
+            meta: 'default',
+            page_name: 'Settings',
+          },
+          url: HREF,
+          referrer: 'test',
+        },
+        {
+          kind: 'event',
+          object_name: 'Box',
+          object_type: 'Button',
+          metadata: {
+            meta: 'new',
+            page_name: 'Settings',
+          },
+          url: HREF,
+          referrer: 'test',
+        },
+      ]);
       done();
     });
   });
