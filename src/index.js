@@ -157,7 +157,7 @@ export class WT {
         resolve();
       })
       .catch(() => {
-        this.loaderImage.src = `${this.getUrl()}?${query}`;
+        this.loaderImage.src = `${this.getUrl()}?fallback=true&${query}`;
       });
     this.emitter.emit(SEND_STARTED);
   }
