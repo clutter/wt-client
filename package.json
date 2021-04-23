@@ -16,7 +16,8 @@
   "main": "lib/index.js",
   "dependencies": {
     "js-cookie": "^2.2.0",
-    "qs": "^6.5.1"
+    "qs": "^6.5.1",
+    "whatwg-fetch": "^3.6.2"
   },
   "files": [
     "lib",
