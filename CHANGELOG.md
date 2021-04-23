@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [v1.2.0] - Thursday, April 22, 2021
+
+- Send events using window.fetch()
+- Send event data in POST request body to avoid URI length limit
+
 ## [v1.1.1] - Thursday, November 19, 2020
 
 - Update 'SEND_STARTED' event to emit after it has actually started sending.
