@@ -1,6 +1,7 @@
 import QS from 'qs';
 import Cookie from 'js-cookie';
 import EventEmitter from 'events';
+import { fetch } from 'whatwg-fetch';
 import { debounce, isFunction, assign, omitBy, isNil, uuid } from './utils';
 
 export const DEBOUNCE_MIN = 500;
@@ -144,7 +145,20 @@ export class WT {
       delete this.loaderImage.onload;
       reject();
     };
-    this.loaderImage.src = `${this.getUrl()}?${query}`;
+
+    fetch(`${this.getRoot()}/wt/t`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: query,
+    })
+      .then(() => {
+        resolve();
+      })
+      .catch(() => {
+        this.loaderImage.src = `${this.getUrl()}?fallback=true&${query}`;
+      });
     this.emitter.emit(SEND_STARTED);
   }
 
