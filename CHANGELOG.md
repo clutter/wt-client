@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## [v1.2.1] - Friday, April 23, 2021
+
+- Send cookies in tracking request to preserve visitor association
+
 ## [v1.2.0] - Thursday, April 22, 2021
 
 - Send events using window.fetch()

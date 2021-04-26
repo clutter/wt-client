@@ -148,6 +148,7 @@ export class WT {
 
     fetch(`${this.getRoot()}/wt/t`, {
       method: 'POST',
+      credentials: 'include',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
       },
