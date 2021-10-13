@@ -1,7 +1,10 @@
 {
-  "parser": "babel-eslint",
-  "extends": "airbnb-base",
+  "extends": "clutter",
+  "ignorePatterns": ["test/**"],
   "env": {
     "mocha": true
+  },
+  "rules": {
+    "@typescript-eslint/explicit-member-accessibility": "off"
   }
 }
