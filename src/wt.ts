@@ -3,8 +3,8 @@ import Cookie from "js-cookie";
 import EventEmitter from "events";
 import { debounce, isFunction, omitBy, isNil, uuid } from "./utils";
 
-export const DEBOUNCE_MIN = 500;
-export const DEBOUNCE_MAX = 1500;
+const DEBOUNCE_MIN_DEFAULT = 500;
+const DEBOUNCE_MAX_DEFAULT = 1500;
 
 const DEFAULT_STRINGIFY_OPTIONS = {
   arrayFormat: "brackets",
@@ -25,8 +25,8 @@ export const SEND_COMPLETED = "send:completed";
 export const QUEUE_COMPLETED = "queue:completed";
 export const QUEUE_CONTINUED = "queue:continued";
 
-const VISITOR_TOKEN_KEY = "wt_visitor_token";
-const PAGE_UUID_KEY = "wt_page_uuid";
+export const VISITOR_TOKEN_KEY = "wt_visitor_token";
+export const PAGE_UUID_KEY = "wt_page_uuid";
 
 function retrieveFromCookie(key: string, config: Cookie.CookieAttributes = {}) {
   let token = Cookie.get(key);
@@ -56,6 +56,10 @@ type WTConfig = {
   trackerUrl?: string;
   trackerDomain?: string;
   stringifyOptions?: QS.IStringifyOptions;
+  debounce?: {
+    min?: number;
+    max?: number;
+  };
 };
 
 /** @internal */
@@ -124,7 +128,9 @@ export class WT {
 
   private firstLoaded = false;
   private emitter = new EventEmitter();
-  private wtConfig: WTConfig = { cookies: { expires: EXPIRES_IN_DAYS } };
+  private wtConfig: WTConfig = {
+    cookies: { expires: EXPIRES_IN_DAYS },
+  };
   private paramDefaults = {};
   private eventQueue: WTEvent[] = [];
   private pageUuid: string | null = null;
@@ -132,10 +138,12 @@ export class WT {
   private unsubFirstLoad: undefined | (() => void);
   private unsubFirstLoadCb: undefined | (() => void);
   private loaderImage: HTMLImageElement | undefined;
+  private processEventsDebounced!: ReturnType<typeof debounce>;
 
   constructor(context: WTContext) {
     this.context = context;
     this.resetFirstLoad();
+    this.updateProcessEventsDebounced();
   }
 
   resetFirstLoad() {
@@ -166,7 +174,7 @@ export class WT {
   }
 
   initialize(payload: WTConfig | ((config: WTConfig) => WTConfig)) {
-    this.wtConfig = resolveMethod(payload, this.wtConfig, this);
+    this.config(payload);
     if (this.wtConfig.cookies) {
       this.getUUIDToken();
       this.getVisitorToken();
@@ -292,15 +300,6 @@ export class WT {
     this.sendToServer(payload, resolve, reject);
   }
 
-  // eslint-disable-next-line @typescript-eslint/member-ordering
-  processEventsDebounced = debounce(
-    this.processEvents.bind(this),
-    DEBOUNCE_MIN,
-    {
-      maxWait: DEBOUNCE_MAX,
-    }
-  );
-
   track(kind: string, payload: WTEventParams = {}) {
     const {
       category,
@@ -356,11 +355,12 @@ export class WT {
     };
   }
 
-  config(payload: WTConfig) {
+  config(payload: WTConfig | ((currentConfig: WTConfig) => WTConfig)) {
     this.wtConfig = {
       ...this.wtConfig,
       ...resolveMethod(payload, this.wtConfig, this),
     };
+    this.updateProcessEventsDebounced();
   }
 
   subscribe(eventName: string, cb: () => void) {
@@ -368,6 +368,16 @@ export class WT {
     return () => {
       this.emitter.removeListener(eventName, cb);
     };
+  }
+
+  private updateProcessEventsDebounced() {
+    this.processEventsDebounced = debounce(
+      this.processEvents.bind(this),
+      this.wtConfig.debounce?.min ?? DEBOUNCE_MIN_DEFAULT,
+      {
+        maxWait: this.wtConfig.debounce?.max ?? DEBOUNCE_MAX_DEFAULT,
+      }
+    );
   }
 }
 
