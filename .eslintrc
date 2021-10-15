@@ -2,7 +2,6 @@
   "extends": "clutter",
   "ignorePatterns": ["test/**", "scripts/**", "dist/**"],
   "rules": {
-    "lines-between-class-members": "off",
-    "@typescript-eslint/explicit-member-accessibility": "off"
+    "lines-between-class-members": "off"
   }
 }

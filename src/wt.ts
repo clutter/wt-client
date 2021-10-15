@@ -142,45 +142,115 @@ export class WT {
     this.updateProcessEventsDebounced();
   }
 
-  initialize(payload: WTConfig | ((config: WTConfig) => WTConfig)) {
-    this.config(payload);
+  public initialize(config: WTConfig | ((config: WTConfig) => WTConfig)) {
+    this.config(config);
     if (this.wtConfig.cookies) {
       this.getUUIDToken();
       this.getVisitorToken();
     }
   }
 
-  getVisitorToken() {
+  public getVisitorToken() {
     return retrieveVisitorToken(
       this.wtConfig.cookies,
       this.context.location && this.context.location.search
     );
   }
 
-  getUUIDToken() {
+  public getUUIDToken() {
     this.pageUuid = retrievePageUUIDToken();
     return this.pageUuid;
   }
 
-  getLoaderImage() {
+  public track(kind: string, params: WTEventParams = {}) {
+    const {
+      category,
+      action,
+      label,
+      value,
+      pageName,
+      container,
+      position,
+      objectType,
+      objectName,
+      ...args
+    } = params;
+    this.eventQueue.push(
+      omitBy(
+        {
+          kind,
+          category,
+          action,
+          label,
+          value,
+          page_name: pageName,
+          container,
+          position,
+          object_type: objectType,
+          object_name: objectName,
+          metadata: { ...this.paramDefaults, ...args },
+          ...this.getEventEnvironmentArgs(),
+          ts: new Date().valueOf(),
+        },
+        isNil
+      )
+    );
+    this.processEventsDebounced();
+  }
+
+  public flush() {
+    this.processEventsDebounced.flush();
+  }
+
+  public clear() {
+    this.paramDefaults = {};
+  }
+
+  public set(defaults: Record<string, any>) {
+    this.paramDefaults = {
+      ...this.paramDefaults,
+      ...resolveMethod(defaults, this.paramDefaults, this),
+    };
+  }
+
+  public config(config: WTConfig | ((currentConfig: WTConfig) => WTConfig)) {
+    this.wtConfig = {
+      ...this.wtConfig,
+      ...resolveMethod(config, this.wtConfig, this),
+    };
+    this.updateProcessEventsDebounced();
+  }
+
+  public subscribe(eventName: string, cb: () => void) {
+    this.emitter.on(eventName, cb);
+    return () => {
+      this.emitter.removeListener(eventName, cb);
+    };
+  }
+
+  private getLoaderImage() {
     return new this.context.Image();
   }
 
-  getUrl() {
+  private getUrl() {
     if (this.wtConfig.trackerUrl) {
       return this.wtConfig.trackerUrl;
     }
     return `${this.getRoot()}/track.gif`;
   }
 
-  getRoot() {
+  private getRoot() {
     if (this.wtConfig.trackerDomain) {
       return this.wtConfig.trackerDomain;
     }
     return `//${this.context.location.hostname}`;
   }
 
-  sendToServer(payload: WTPayload, resolve: () => void, reject: () => void) {
+  private sendToServer(
+    payload: WTPayload,
+    resolve: () => void,
+    reject: () => void
+  ) {
     this.loaderImage = this.loaderImage || this.getLoaderImage();
     const query = QS.stringify(payload, {
       addQueryPrefix: false,
@@ -215,7 +285,7 @@ export class WT {
     this.emitter.emit(SEND_STARTED);
   }
 
-  getRequestEnvironmentArgs() {
+  private getRequestEnvironmentArgs() {
     return {
       dimensions: {
         width: this.context.innerWidth,
@@ -229,7 +299,7 @@ export class WT {
     };
   }
 
-  getEventEnvironmentArgs() {
+  private getEventEnvironmentArgs() {
     return {
       url: this.context.location.href,
       referrer: this.context.document.referrer,
@@ -237,7 +307,7 @@ export class WT {
     };
   }
 
-  processEvents() {
+  private processEvents() {
     if (this.loading) {
       return;
     }
@@ -267,76 +337,6 @@ export class WT {
     };
 
     this.sendToServer(payload, resolve, reject);
-  }
-
-  track(kind: string, payload: WTEventParams = {}) {
-    const {
-      category,
-      action,
-      label,
-      value,
-      pageName,
-      container,
-      position,
-      objectType,
-      objectName,
-      ...args
-    } = payload;
-    this.eventQueue.push(
-      omitBy(
-        {
-          kind,
-          category,
-          action,
-          label,
-          value,
-          page_name: pageName,
-          container,
-          position,
-          object_type: objectType,
-          object_name: objectName,
-          metadata: { ...this.paramDefaults, ...args },
-          ...this.getEventEnvironmentArgs(),
-          ts: new Date().valueOf(),
-        },
-        isNil
-      )
-    );
-    this.signalEventChange();
-  }
-
-  signalEventChange() {
-    this.processEventsDebounced();
-  }
-
-  flush() {
-    this.processEventsDebounced.flush();
-  }
-
-  clear() {
-    this.paramDefaults = {};
-  }
-
-  set(payload: Record<string, any>) {
-    this.paramDefaults = {
-      ...this.paramDefaults,
-      ...resolveMethod(payload, this.paramDefaults, this),
-    };
-  }
-
-  config(payload: WTConfig | ((currentConfig: WTConfig) => WTConfig)) {
-    this.wtConfig = {
-      ...this.wtConfig,
-      ...resolveMethod(payload, this.wtConfig, this),
-    };
-    this.updateProcessEventsDebounced();
-  }
-
-  subscribe(eventName: string, cb: () => void) {
-    this.emitter.on(eventName, cb);
-    return () => {
-      this.emitter.removeListener(eventName, cb);
-    };
   }
 
   private updateProcessEventsDebounced() {

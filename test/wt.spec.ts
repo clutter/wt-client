@@ -264,7 +264,7 @@ describe("wt-tracker.", () => {
   it("should not double load", (done) => {
     const wt = withContext(context);
 
-    wt.sendToServer = () => waitFor(100);
+    wt["sendToServer"] = () => waitFor(100);
     const events = [];
     for (let i = 0; i < 1000; i++) {
       events.push({ hello: "world", url: HREF });
@@ -273,7 +273,7 @@ describe("wt-tracker.", () => {
     wt.flush();
     setTimeout(() => {
       const eventQueueLength = wt["eventQueue"].length;
-      wt.processEvents();
+      wt["processEvents"]();
       expect(eventQueueLength).toEqual(wt["eventQueue"].length);
       done();
     }, 1);
@@ -282,7 +282,7 @@ describe("wt-tracker.", () => {
   it("should process an empty queue", (done) => {
     const wt = withContext(context);
 
-    wt.sendToServer = () => waitFor(1);
+    wt["sendToServer"] = () => waitFor(1);
     const events = [];
     for (let i = 0; i < 10; i++) {
       events.push({ hello: "world", url: HREF });
@@ -290,10 +290,10 @@ describe("wt-tracker.", () => {
     events.forEach((event) => wt.track("event", event));
     wt.flush();
     setTimeout(() => {
-      wt.sendToServer = () => {
+      wt["sendToServer"] = () => {
         throw new Error("Should not call");
       };
-      wt.processEvents();
+      wt["processEvents"]();
       setTimeout(() => done(), 100);
     }, 100);
   });
@@ -308,20 +308,20 @@ describe("wt-tracker.", () => {
   });
 
   it("should guess root url based on context", () => {
-    const currentConfig = wt["wtConfig"];
     wt.initialize({
       trackerDomain: null,
       trackerUrl: null,
     });
-    let url = wt.getRoot();
-    expect(url).toEqual(`//${context.location.hostname}`);
-    url = wt.getUrl();
+    let root = wt["getRoot"]();
+    expect(root).toEqual(`//${context.location.hostname}`);
+
+    let url = wt["getUrl"]();
     expect(url).toEqual(`//${context.location.hostname}/track.gif`);
+
     const trackerDomain = "test.domain.com";
     wt.initialize({ trackerDomain });
-    url = wt.getRoot();
-    expect(url).toEqual(trackerDomain);
-    wt.initialize(currentConfig);
+    root = wt["getRoot"]();
+    expect(root).toEqual(trackerDomain);
   });
 
   it("should update defaults with a function", () => {
