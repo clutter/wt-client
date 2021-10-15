@@ -147,26 +147,6 @@ const unsub = wt.subscribe(SEND_COMPLETED, () => {
 });
 ```
 
-### First Load
-
-You may be sending a cookie back from your server. If you want to wait for an event to complete before performing actions, use the `afterFirstLoad` command.
-
-```js
-import wt from '@clutter/wt'
-
-wt('afterFirstLoad', () => {
-  console.log('You\'ve sent your page view request!');
-});
-
-wt('pageview');
-
-// if you call it later
-wt('afterFirstLoad', () => {
-  console.log('This is invoked immediately');
-});
-
-```
-
 # How to implement the server
 
 Events will be sent to the server by one of two methods:
