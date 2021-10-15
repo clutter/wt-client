@@ -1,3 +1,17 @@
 {
-  "include": ["./src"]
+  "include": ["./src"],
+  "exclude": ["./src/utils"],
+  "compilerOptions": {
+    "target": "es5",
+    "lib": ["ES2020", "DOM"],
+    "types": ["node", "jest"],
+    "declaration": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "strict": true,
+    "useUnknownInCatchVariables": true,
+    "skipLibCheck": true,
+    "outDir": "dist",
+    "stripInternal": true
+  }
 }

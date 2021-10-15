@@ -1,10 +1,8 @@
 {
   "extends": "clutter",
-  "ignorePatterns": ["test/**"],
-  "env": {
-    "mocha": true
-  },
+  "ignorePatterns": ["test/**", "scripts/**", "dist/**"],
   "rules": {
+    "lines-between-class-members": "off",
     "@typescript-eslint/explicit-member-accessibility": "off"
   }
 }
