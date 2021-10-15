@@ -2,16 +2,18 @@ import QS from "qs";
 import { omit } from "lodash";
 import {
   withContext,
-  DEBOUNCE_MIN,
   SEND_COMPLETED,
   WTPayload,
   WTContext,
+  PAGE_UUID_KEY,
 } from "../src/wt";
 
 import { debounce, uuid } from "../src/utils";
+import Cookies from "js-cookie";
 
-const LOAD_WAIT = 50;
+const LOAD_WAIT = 10;
 const BUFFER = 10;
+const DEBOUNCE_MIN_DEFAULT = 1;
 
 const HREF = "https://www.test.url/test-path?hello=world&hi=mom";
 
@@ -96,7 +98,7 @@ function runEvents(events, cb, timeOffset = 0) {
     events.forEach((event) => wt.track("event", event));
     setTimeout(() => {
       cb(parseLoggedEvents());
-    }, LOAD_WAIT + DEBOUNCE_MIN + BUFFER + timeOffset / 2);
+    }, LOAD_WAIT + DEBOUNCE_MIN_DEFAULT + BUFFER + timeOffset / 2);
   }, timeOffset / 2);
 }
 
@@ -106,19 +108,25 @@ global.fetch = jest.fn(() =>
 ) as unknown as typeof window.fetch;
 
 describe("wt-tracker.", () => {
+  const pageUuid = uuid();
+
   beforeEach(() => {
     loggedEvents = [];
+    Cookies.set(PAGE_UUID_KEY, pageUuid);
     wt = withContext(context);
     wt.initialize({
       trackerUrl: "pixel.test.url/pixel.gif",
       stringifyOptions: {},
+      debounce: {
+        min: DEBOUNCE_MIN_DEFAULT,
+      },
     });
     wt.clear();
   });
 
   it("should load without error", (done) => {
     wt.track("test", { hello: "world" });
-    setTimeout(done, LOAD_WAIT + DEBOUNCE_MIN + BUFFER);
+    setTimeout(done, LOAD_WAIT + DEBOUNCE_MIN_DEFAULT + BUFFER);
   });
 
   it("should log one call", (done) => {
@@ -131,6 +139,7 @@ describe("wt-tracker.", () => {
             hello: "world",
             url: HREF,
           },
+          page_uuid: pageUuid,
           referrer: "test",
           url: HREF,
         },
@@ -174,7 +183,7 @@ describe("wt-tracker.", () => {
       .then(() => {
         events.forEach((event) => wt.track("event", event));
       })
-      .then(() => waitFor(1 + LOAD_WAIT + BUFFER + DEBOUNCE_MIN))
+      .then(() => waitFor(1 + LOAD_WAIT + BUFFER + DEBOUNCE_MIN_DEFAULT))
       .then(() => {
         const parsedEvents = parseLoggedEvents();
         expect(parsedEvents).toEqual([
@@ -184,6 +193,7 @@ describe("wt-tracker.", () => {
               hello: "world",
               url: HREF,
             },
+            page_uuid: pageUuid,
             referrer: "test",
             url: HREF,
           },
@@ -193,6 +203,7 @@ describe("wt-tracker.", () => {
               hello: "world",
               url: HREF,
             },
+            page_uuid: pageUuid,
             referrer: "test",
             url: HREF,
           },
@@ -219,6 +230,7 @@ describe("wt-tracker.", () => {
             page_name: "Settings",
           },
           url: HREF,
+          page_uuid: pageUuid,
           referrer: "test",
         },
         {
@@ -230,6 +242,7 @@ describe("wt-tracker.", () => {
             page_name: "Settings",
           },
           url: HREF,
+          page_uuid: pageUuid,
           referrer: "test",
         },
       ]);
@@ -345,12 +358,12 @@ describe("utils.debounce", () => {
     const flipTrue = () => {
       flipped = true;
     };
-    const debouncedFlip = debounce(flipTrue, DEBOUNCE_MIN);
+    const debouncedFlip = debounce(flipTrue, DEBOUNCE_MIN_DEFAULT);
     debouncedFlip();
     setTimeout(() => {
       expect(flipped).toBe(true);
       done();
-    }, DEBOUNCE_MIN + 1);
+    }, DEBOUNCE_MIN_DEFAULT + 1);
   });
 
   it("debounce flush should work", (done) => {
@@ -358,7 +371,7 @@ describe("utils.debounce", () => {
     const flipTrue = () => {
       flipped = true;
     };
-    const debouncedFlip = debounce(flipTrue, DEBOUNCE_MIN);
+    const debouncedFlip = debounce(flipTrue, DEBOUNCE_MIN_DEFAULT);
     debouncedFlip();
     debouncedFlip.flush();
     setTimeout(() => {
@@ -372,7 +385,7 @@ describe("utils.debounce", () => {
     const flipTrue = () => {
       flipped = true;
     };
-    const debouncedFlip = debounce(flipTrue, DEBOUNCE_MIN);
+    const debouncedFlip = debounce(flipTrue, DEBOUNCE_MIN_DEFAULT);
     debouncedFlip();
     debouncedFlip.clear();
     debouncedFlip.flush();
