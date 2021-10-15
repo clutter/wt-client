@@ -5,27 +5,7 @@
 [![build status](https://img.shields.io/circleci/project/github/clutter/wt-client.svg)](https://circleci.com/gh/clutter/wt-client)
 [![npm version](https://img.shields.io/npm/v/@clutter/wt.svg?style=flat-square)](https://www.npmjs.com/package/@clutter/wt)
 
-It provides a single function `wt` that can be used as follows:
-
-```js
-import wt from '@clutter/wt';
-button.addEventListener(
-  'click',
-  () => wt('event'),
-);
-```
-
-When `button` is clicked, this code will send event data to the server asynchronously using the polyfilled window.fetch() method.
-
-On the server, the endpoint `/wt/t` is expected to return a valid response
-and to parse all the provided parameters, keeping track of the events sent by `wt`.
-
-# Why use wt
-
-The benefit of `wt` is to reliably track visitor events in the browser.
-`wt` is highly customizable and can send events to your own server, rather than third-party trackers.
-
-# How to install and load wt
+# Installation
 
 The easiest way to install `wt` is through Yarn:
 
@@ -33,23 +13,18 @@ The easiest way to install `wt` is through Yarn:
 yarn add @clutter/wt
 ```
 
-Before calling the `wt` method, import from the library:
-
-```js
-import wt from '@clutter/wt';
-```
-
 # How to use wt
 
-Events can be tracked with the function `wt(*string* kind, *object* params)`.
+Events can be tracked with the function `wt.track(kind: string, params: Record<string, any>)`.
 For a single event, set `kind` to `'event'` and pass any parameters you want to track in `params`.
 For instance:
 
 ```js
-wt('event', { action: 'hover' })
+wt.track("event", { action: "hover" });
 ```
 
 The data sent to the server will contain the following:
+
 - `events[][kind]`: the kind of tracking; in this case: `'event'`
 - `events[][url]`: the URL of the page where the event occurred
 - `events[][action]`: the only param to track in this case: `'hover'`
@@ -62,9 +37,9 @@ The data sent to the server will contain the following:
 Multiple events can be tracked by calling `wt` several times:
 
 ```js
-wt('event', { action: 'hover' })
+wt.track("event", { action: "hover" });
 // after 0.2 seconds
-wt('event', { action: 'click' })
+wt.track("event", { action: "click" });
 ```
 
 Under the hood, `wt` is optimized to deal with multiple events.
@@ -73,10 +48,12 @@ Under the hood, `wt` is optimized to deal with multiple events.
 The goal is to avoid hitting the server too many times.
 If multiple events are sent in the same request, each request has its own payload.
 
-### How to track a pageview
+### Pageviews
+
+Events can be tracked without explicit parameters:
 
 ```js
-wt('pageview')
+wt.track("pageview");
 ```
 
 ### How to change the location of the tracking endpoint
@@ -85,8 +62,8 @@ By default, `wt` expects the tracker domain to be the same host as the current p
 This can be changed by initializing `wt` with a different `trackerDomain` before tracking:
 
 ```js
-wt('initialize', {
-  trackerDomain: 'www.my-pixel-endpoint.com',
+wt.initialize({
+  trackerDomain: "www.my-pixel-endpoint.com",
 });
 ```
 
@@ -96,12 +73,12 @@ By default, `wt` generates a cookie as a pixel to keep track of a visitor.
 This can be changed by initializing `wt` with a different `domain` and `expires` prior to tracking:
 
 ```js
-wt('initial', {
+wt.initialize({
   cookies: {
-    domain: '.example.com',
+    domain: ".example.com",
     expires: 365,
-  }
-})
+  },
+});
 ```
 
 ### How to track more data for each event
@@ -109,11 +86,11 @@ wt('initial', {
 Any object can be passed when tracking an event, for instance:
 
 ```js
-wt('event', {
-  action: 'click',
+wt.track("event", {
+  action: "click",
   user: {
     id: 1,
-    email: 'user@example.com'
+    email: "user@example.com",
   },
   custom: false,
 });
@@ -124,9 +101,9 @@ wt('event', {
 If part of the payload is the same for every event, it can be set once using `set`. For instance calling:
 
 ```js
-wt('set', {
+wt.set({
   user: {
-   id: 1
+    id: 1,
   },
 });
 ```
@@ -138,7 +115,7 @@ In this sense, `set` behaves like `React.Component().setState()`.
 All the values already set can be cleared with:
 
 ```js
-wt('clear')
+wt.clear();
 ```
 
 ### Events
@@ -146,9 +123,9 @@ wt('clear')
 You may want to subscribe to lifecycle events for the tracker.
 
 ```js
-import wt, { SEND_COMPLETED } from '@clutter/wt'
-wt('subscribe', SEND_COMPLETED, () => {
-  console.log('Analytics data sent');
+import wt, { SEND_COMPLETED } from "@clutter/wt";
+wt.subscribe(SEND_COMPLETED, () => {
+  console.log("Analytics data sent");
 });
 ```
 
@@ -162,10 +139,10 @@ The lifecycle events are:
 Calling this method will return an `unsubscribe` method. You can use it to stop listening to the event.
 
 ```js
-import wt, { SEND_COMPLETED } from '@clutter/wt'
+import wt, { SEND_COMPLETED } from "@clutter/wt";
 
-const unsub = wt('subscribe', SEND_COMPLETED, () => {
-  console.log('Analytics data sent - you\'ll only see this once');
+const unsub = wt.subscribe(SEND_COMPLETED, () => {
+  console.log("Analytics data sent - you'll only see this once");
   unsub();
 });
 ```
@@ -192,6 +169,48 @@ wt('afterFirstLoad', () => {
 
 # How to implement the server
 
-In order for `wt` to fully work, a server must be running that provides a `/wt/t` endpoint.
-This can be built in Rails, node.js or any other technology.
-An example is provided inside the repo at `examples/index.server.js`
+Events will be sent to the server by one of two methods:
+
+1. A post request with URL encoded query string
+2. If the post is unsuccessful, a get request with the same query string to a pixel image
+
+The query string will use the following structure:
+
+```js
+{
+  events: [
+    {
+      // The first parameter passed to wt.track()
+      kind: 'event',
+      // The url of the page triggering the event
+      url: 'https://www.clutter.com/',
+      // Referrer of the page if present
+      referrer: '',
+      // A uuid which connects all events in a single "pageview" (this is only
+      // regenerated on browser navigation, not SPA navigation)
+      page_uuid: '5bf86c66-1d3a-4b69-9a4e-e33ce421d791',
+      // Epoch MS at the time of the event
+      ts: '1634596872864'
+      // The second parameter passed to wt.track is merged into the event
+      category: 'user_interaction',
+      action: 'click',
+      label: 'What\'s your zip code?',
+      value: '90232',
+      page_name: 'home',
+      container: 'hero',
+      position: '1',
+      object_type: 'button',
+      object_name: 'hero_cta',
+      // Parameters not included in the above list will be grouped under
+      // a single metadata key
+      metadata: {
+        variant: 'jungle',
+        button_color: 'toucan'
+      }
+    }
+  ],
+  dimensions: { width: '1680', height: '916' },
+  agent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/94.0.4606.71 Safari/537.36',
+  rts: '1634596873615'
+}
+```
