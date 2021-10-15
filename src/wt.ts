@@ -126,7 +126,6 @@ export type WTPayload = {
 export class WT {
   public loading = false;
 
-  private firstLoaded = false;
   private emitter = new EventEmitter();
   private wtConfig: WTConfig = {
     cookies: { expires: EXPIRES_IN_DAYS },
@@ -135,42 +134,12 @@ export class WT {
   private eventQueue: WTEvent[] = [];
   private pageUuid: string | null = null;
   private context: WTContext;
-  private unsubFirstLoad: undefined | (() => void);
-  private unsubFirstLoadCb: undefined | (() => void);
   private loaderImage: HTMLImageElement | undefined;
   private processEventsDebounced!: ReturnType<typeof debounce>;
 
   constructor(context: WTContext) {
     this.context = context;
-    this.resetFirstLoad();
     this.updateProcessEventsDebounced();
-  }
-
-  resetFirstLoad() {
-    this.firstLoaded = false;
-    if (this.unsubFirstLoadCb) {
-      this.unsubFirstLoadCb();
-    }
-    if (this.unsubFirstLoad) {
-      this.unsubFirstLoad();
-    }
-    this.unsubFirstLoad = this.subscribe(SEND_COMPLETED, () => {
-      this.firstLoaded = true;
-      this.unsubFirstLoad?.();
-      delete this.unsubFirstLoad;
-    });
-  }
-
-  afterFirstLoad(cb: () => void) {
-    if (this.firstLoaded) {
-      cb();
-    } else {
-      this.unsubFirstLoadCb = this.subscribe(SEND_COMPLETED, () => {
-        cb();
-        this.unsubFirstLoadCb?.();
-        delete this.unsubFirstLoadCb;
-      });
-    }
   }
 
   initialize(payload: WTConfig | ((config: WTConfig) => WTConfig)) {
