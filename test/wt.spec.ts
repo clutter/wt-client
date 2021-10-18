@@ -8,7 +8,7 @@ import {
   PAGE_UUID_KEY,
 } from "../src/wt";
 
-import { debounce, uuid } from "../src/utils";
+import { uuid } from "../src/utils";
 import Cookies from "js-cookie";
 
 const LOAD_WAIT = 10;
@@ -349,49 +349,5 @@ describe("wt-visitor-token", () => {
     const wvt = qs.wvt;
 
     expect(wt.getVisitorToken()).toBe(wvt);
-  });
-});
-
-describe("utils.debounce", () => {
-  it("debounce should work", (done) => {
-    let flipped = false;
-    const flipTrue = () => {
-      flipped = true;
-    };
-    const debouncedFlip = debounce(flipTrue, DEBOUNCE_MIN_DEFAULT);
-    debouncedFlip();
-    setTimeout(() => {
-      expect(flipped).toBe(true);
-      done();
-    }, DEBOUNCE_MIN_DEFAULT + 1);
-  });
-
-  it("debounce flush should work", (done) => {
-    let flipped = false;
-    const flipTrue = () => {
-      flipped = true;
-    };
-    const debouncedFlip = debounce(flipTrue, DEBOUNCE_MIN_DEFAULT);
-    debouncedFlip();
-    debouncedFlip.flush();
-    setTimeout(() => {
-      expect(flipped).toBe(true);
-      done();
-    }, 1);
-  });
-
-  it("debounce flush should not work with clear", (done) => {
-    let flipped = false;
-    const flipTrue = () => {
-      flipped = true;
-    };
-    const debouncedFlip = debounce(flipTrue, DEBOUNCE_MIN_DEFAULT);
-    debouncedFlip();
-    debouncedFlip.clear();
-    debouncedFlip.flush();
-    setTimeout(() => {
-      expect(flipped).toBe(false);
-      done();
-    }, 1);
   });
 });
