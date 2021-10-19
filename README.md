@@ -13,7 +13,7 @@ The easiest way to install `wt` is through Yarn:
 yarn add @clutter/wt
 ```
 
-# How to use wt
+# How to use WT
 
 Events can be tracked with the function `wt.track(kind: string, params: Record<string, any>)`.
 For a single event, set `kind` to `'event'` and pass any parameters you want to track in `params`.
@@ -23,16 +23,7 @@ For instance:
 wt.track("event", { action: "hover" });
 ```
 
-The data sent to the server will contain the following:
-
-- `events[][kind]`: the kind of tracking; in this case: `'event'`
-- `events[][url]`: the URL of the page where the event occurred
-- `events[][action]`: the only param to track in this case: `'hover'`
-- `events[][ts]`: the timestamp when the event occurred (Unix-time milliseconds)
-- `agent`: the User Agent of the request
-- `rts`: the timestamp when the event was sent
-
-### How to track multiple events
+### Multiple events
 
 Multiple events can be tracked by calling `wt` several times:
 
@@ -56,7 +47,9 @@ Events can be tracked without explicit parameters:
 wt.track("pageview");
 ```
 
-### How to change the location of the tracking endpoint
+# Configuration
+
+### Changing the location of the tracking endpoint
 
 By default, `wt` expects the tracker domain to be the same host as the current page.
 This can be changed by initializing `wt` with a different `trackerDomain` before tracking:
@@ -67,7 +60,7 @@ wt.initialize({
 });
 ```
 
-### How to configure the tracking cookie
+### Configuring the tracking cookie
 
 By default, `wt` generates a cookie as a pixel to keep track of a visitor.
 This can be changed by initializing `wt` with a different `domain` and `expires` prior to tracking:
@@ -81,22 +74,7 @@ wt.initialize({
 });
 ```
 
-### How to track more data for each event
-
-Any object can be passed when tracking an event, for instance:
-
-```js
-wt.track("event", {
-  action: "click",
-  user: {
-    id: 1,
-    email: "user@example.com",
-  },
-  custom: false,
-});
-```
-
-### How to submit default data for every event
+### Submitting default data for every event
 
 If part of the payload is the same for every event, it can be set once using `set`. For instance calling:
 
@@ -118,7 +96,7 @@ All the values already set can be cleared with:
 wt.clear();
 ```
 
-### Events
+### Lifecycle Events
 
 You may want to subscribe to lifecycle events for the tracker.
 
@@ -147,7 +125,7 @@ const unsub = wt.subscribe(SEND_COMPLETED, () => {
 });
 ```
 
-# How to implement the server
+# Server Implementation
 
 Events will be sent to the server by one of two methods:
 
