@@ -12,6 +12,7 @@
     "useUnknownInCatchVariables": true,
     "skipLibCheck": true,
     "outDir": "dist",
-    "stripInternal": true
+    "stripInternal": true,
+    "jsx": "react"
   }
 }

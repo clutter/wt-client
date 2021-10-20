@@ -47,6 +47,120 @@ Events can be tracked without explicit parameters:
 wt.track("pageview");
 ```
 
+# React Integration
+
+`@clutter/wt` includes a React integration that supports providing event parameters via React context, validating events, and hooks to easily track events and inspect the current context parameters.
+
+WT exports a default `WTProvider` component, and two hooks: `useTrack` and `useWT`. The provided hooks can only be used within a `WTProvider` (calling `useWT` or `useTrack` will not error, but attempting to track an event will).
+
+```tsx
+const TrackedButton = ({ children }) => {
+  const track = useTrack();
+  return <button onClick={() => track()}>{children}</button>;
+};
+
+<>
+  <TrackedButton>I will throw if you click me!</TrackedButton>
+  <WTProvider>
+    <TrackedButton>I will not throw!</TrackedButton>
+  </WTProvider>
+</>;
+```
+
+If
+additional customization is desired, there is also a `createProvider` utility which allows for custom typing and added
+event control. Each call to `createProvider` creates a new, distinct React context meaning that the returned hooks _will not work_ with the default `WTProvider`.
+
+```tsx
+type EventParams = WTEventParams & {
+  customParamA: string;
+  customParamB?: string;
+};
+
+// The returned provider and hooks share a single context and respect the EventParams type
+const { WTProvider, useTrack, useWT } = createProvider((params: EventParams) =>
+  wt.track("event", params)
+);
+```
+
+### Context
+
+Context providers may be nested to build event parameters contextually:
+
+```tsx
+const TrackedButton = ({ children }) => {
+  const track = useTrack();
+
+  return <button onClick={() => track()}>{children}</button>;
+};
+
+<WTProvider params={{ pageName: "home" }}>
+  <WTProvider params={{ container: "hero" }}>
+    {/* Events tracked here will receive the params { pageName: 'home', container: 'hero' } */}
+    <TrackedButton>I am a hero!</TrackedButton>
+  </WTProvider>
+  <WTProvider params={{ container: "body" }}>
+    {/* Events tracked here will receive the params { pageName: 'home', container: 'body' } */}
+    <TrackedButton>I have a body!</TrackedButton>
+  </WTProvider>
+</WTProvider>;
+```
+
+### Hooks
+
+`useTrack` provides the most flexible interface to track an event in a context aware manner
+
+```tsx
+function List({ children }) {
+  // Parameters passed to `useTrack` will be merged into each call to `track`
+  const track = useTrack({ container: "list" });
+
+  return (
+    <ul>
+      <li>
+        {/* Parameters can also be passed to individual `track` calls */}
+        <button onClick={() => track({ position: 1 })}>Item 1</button>
+        <button onClick={() => track({ position: 2 })}>Item 2</button>
+      </li>
+    </ul>
+  );
+}
+```
+
+`useWT` can be used if seeing the context event parameters is desired
+
+```tsx
+function List({ children }) {
+  const { track, params } = useWT();
+
+  doSomethingWithPageName(params.pageName);
+
+  return (
+    <button onClick={() => track({ label: "Track me!" })}>Track me!</button>
+  );
+}
+```
+
+### Validation
+
+Because event parameters can be spread across nested contexts, it can be useful to validate that required params are present.
+
+```tsx
+const validateEvent = (params: any) => {
+  // Throw an error in severe cases if desired
+  if (params.name === "John Doe") {
+    throw new Error("John Doe must remain anonymous!");
+  }
+
+  // Returning a false-y value will bypass sending the event.
+  return !!params.pageName;
+};
+
+const { WTProvider } = createProvider((params) => wt.track("event", params), {
+  validateEvent,
+});
+```
+
 # Configuration
 
 ### Changing the location of the tracking endpoint
@@ -88,9 +202,9 @@ wt.set({
 
 ensures that the user ID is sent as part of the payload in any event.
 
-Calling `set` multiple times adds new values without clearing the old ones.
-In this sense, `set` behaves like `React.Component().setState()`.
-All the values already set can be cleared with:
+Calling `set` multiple times merges values together, preferring new values.
+
+Values already set can be cleared with:
 
 ```js
 wt.clear();
