@@ -1,25 +1,28 @@
 const esbuild = require("esbuild");
 
-const entryPoints = ["src/wt.ts"];
+const sharedConfig = {
+  entryPoints: ["src/wt.ts"],
+  external: ["react"],
+};
 
 const CONFIGS = [
   {
+    ...sharedConfig,
     target: "esnext",
-    entryPoints,
     bundle: true,
     format: "esm",
     outfile: "dist/wt.esm.js",
   },
   {
+    ...sharedConfig,
     target: "es2017",
-    entryPoints,
     bundle: true,
     format: "cjs",
     outfile: "dist/wt.dev.js",
   },
   {
+    ...sharedConfig,
     target: "es2017",
-    entryPoints,
     bundle: true,
     minify: true,
     format: "cjs",

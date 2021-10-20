@@ -6,7 +6,7 @@ import {
   WTPayload,
   WTContext,
   PAGE_UUID_KEY,
-} from "../src/wt";
+} from "../src/client";
 
 import { uuid } from "../src/utils";
 import Cookies from "js-cookie";
