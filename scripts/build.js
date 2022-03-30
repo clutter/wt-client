@@ -1,9 +1,12 @@
 const esbuild = require("esbuild");
+const deps = require("../package.json").dependencies;
 
 const sharedConfig = {
   entryPoints: ["src/wt.ts"],
-  external: ["react"],
+  external: ["react"].concat(...Object.keys(deps)),
 };
+
+console.log(sharedConfig.external);
 
 const CONFIGS = [
   {
