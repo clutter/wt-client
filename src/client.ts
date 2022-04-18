@@ -162,8 +162,49 @@ export class WT {
     return this.pageUuid;
   }
 
-  public track(kind: string, params: WTEventParams = {}) {
+  public track(kindOrParams: string | WTEventParams) {
+    const resolvedParams =
+      typeof kindOrParams === "string" ? { kind: kindOrParams } : kindOrParams;
+
+    this.addToQueue({
+      ...resolvedParams,
+      kind: resolvedParams.kind ?? "event",
+    });
+  }
+
+  public flush() {
+    this.processEventsDebounced.flush();
+  }
+
+  public clear() {
+    this.paramDefaults = {};
+  }
+
+  public set(defaults: Record<string, any>) {
+    this.paramDefaults = {
+      ...this.paramDefaults,
+      ...resolveMethod(defaults, this.paramDefaults, this),
+    };
+  }
+
+  public config(config: WTConfig | ((currentConfig: WTConfig) => WTConfig)) {
+    this.wtConfig = {
+      ...this.wtConfig,
+      ...resolveMethod(config, this.wtConfig, this),
+    };
+    this.updateProcessEventsDebounced();
+  }
+
+  public subscribe(eventName: string, cb: () => void) {
+    this.emitter.on(eventName, cb);
+    return () => {
+      this.emitter.removeListener(eventName, cb);
+    };
+  }
+
+  private addToQueue(params: WTEventParams) {
     const {
+      kind,
       category,
       action,
       label,
@@ -196,36 +237,6 @@ export class WT {
       )
     );
     this.processEventsDebounced();
-  }
-
-  public flush() {
-    this.processEventsDebounced.flush();
-  }
-
-  public clear() {
-    this.paramDefaults = {};
-  }
-
-  public set(defaults: Record<string, any>) {
-    this.paramDefaults = {
-      ...this.paramDefaults,
-      ...resolveMethod(defaults, this.paramDefaults, this),
-    };
-  }
-
-  public config(config: WTConfig | ((currentConfig: WTConfig) => WTConfig)) {
-    this.wtConfig = {
-      ...this.wtConfig,
-      ...resolveMethod(config, this.wtConfig, this),
-    };
-    this.updateProcessEventsDebounced();
-  }
-
-  public subscribe(eventName: string, cb: () => void) {
-    this.emitter.on(eventName, cb);
-    return () => {
-      this.emitter.removeListener(eventName, cb);
-    };
   }
 
   private getLoaderImage() {

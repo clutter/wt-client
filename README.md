@@ -15,12 +15,16 @@ yarn add @clutter/wt
 
 # How to use WT
 
-Events can be tracked with the function `wt.track(kind: string, params: Record<string, any>)`.
-For a single event, set `kind` to `'event'` and pass any parameters you want to track in `params`.
-For instance:
+Events can be tracked with the function `wt.track(params: WTEventParams & Record<string, any>)`.
 
 ```js
-wt.track("event", { action: "hover" });
+wt.track({ action: "hover" });
+```
+
+All events have a `kind` property that defaults to `"event"`. For events that don't require any additional data (e.g. pageview events), there is a simplified syntax to set _only_ the `kind` property:
+
+```js
+wt.track("pageview");
 ```
 
 ### Multiple events
@@ -28,9 +32,9 @@ wt.track("event", { action: "hover" });
 Multiple events can be tracked by calling `wt` several times:
 
 ```js
-wt.track("event", { action: "hover" });
+wt.track({ action: "hover" });
 // after 0.2 seconds
-wt.track("event", { action: "click" });
+wt.track({ action: "click" });
 ```
 
 Under the hood, `wt` is optimized to deal with multiple events.
@@ -39,13 +43,9 @@ Under the hood, `wt` is optimized to deal with multiple events.
 The goal is to avoid hitting the server too many times.
 If multiple events are sent in the same request, each request has its own payload.
 
-### Pageviews
+### Data
 
-Events can be tracked without explicit parameters:
-
-```js
-wt.track("pageview");
-```
+`wt` includes a list of recognized properties, detailed in `WTEventParams` (also see [Server Implementation](#server-implementation) below). Custom properties can also be tracked and will be grouped under a single `metadata` property.
 
 # React Integration
 
@@ -67,8 +67,7 @@ const TrackedButton = ({ children }) => {
 </>;
 ```
 
-If
-additional customization is desired, there is also a `createProvider` utility which allows for custom typing and added
+If additional customization is desired, there is also a `createProvider` utility which allows for custom typing and added
 event control. Each call to `createProvider` creates a new, distinct React context meaning that the returned hooks _will not work_ with the default `WTProvider`.
 
 ```tsx
@@ -79,7 +78,7 @@ type EventParams = WTEventParams & {
 
 // The returned provider and hooks share a single context and respect the EventParams type
 const { WTProvider, useTrack, useWT } = createProvider((params: EventParams) =>
-  wt.track("event", params)
+  wt.track(params)
 );
 ```
 
@@ -156,7 +155,7 @@ const validateEvent = (params: any) => {
   return !!params.pageName;
 };
 
-const { WTProvider } = createProvider((params) => wt.track("event", params), {
+const { WTProvider } = createProvider((params) => wt.track(params), {
   validateEvent,
 });
 ```
@@ -252,8 +251,6 @@ The query string will use the following structure:
 {
   events: [
     {
-      // The first parameter passed to wt.track()
-      kind: 'event',
       // The url of the page triggering the event
       url: 'https://www.clutter.com/',
       // Referrer of the page if present
@@ -263,7 +260,8 @@ The query string will use the following structure:
       page_uuid: '5bf86c66-1d3a-4b69-9a4e-e33ce421d791',
       // Epoch MS at the time of the event
       ts: '1634596872864'
-      // The second parameter passed to wt.track is merged into the event
+      // Known parameters passed to wt.track are converted to snake case and merged with the event
+      kind: 'event',
       category: 'user_interaction',
       action: 'click',
       label: 'What\'s your zip code?',
@@ -274,7 +272,7 @@ The query string will use the following structure:
       object_type: 'button',
       object_name: 'hero_cta',
       // Parameters not included in the above list will be grouped under
-      // a single metadata key
+      // a single metadata key (without any transformation).
       metadata: {
         variant: 'jungle',
         button_color: 'toucan'
