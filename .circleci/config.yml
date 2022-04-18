@@ -1,15 +1,48 @@
-version: 2
+version: 2.1
+orbs:
+  node: circleci/node@5.0.2
+executors:
+  default:
+    docker:
+      - image: "cimg/node:17.9.0"
 jobs:
   build:
-    docker:
-      - image: cimg/node:16.0.0
+    executor:
+      name: default
     steps:
       - checkout
-      - restore_cache:
-          key: dependency-cache-{{ checksum "yarn.lock" }}
-      - run: yarn
-      - save_cache:
-          key: dependency-cache-{{ checksum "yarn.lock" }}
+      - attach_workspace:
+          at: .
+      - node/install-packages:
+          pkg-manager: yarn
+      - run: yarn build
+      - persist_to_workspace:
+          root: .
           paths:
-            - ./node_modules
-      - run: yarn test
+            - dist/
+  test:
+    executor:
+      name: default
+    steps:
+      - checkout
+      - node/install-packages:
+          pkg-manager: yarn
+      - run:
+          name: test
+          command: yarn run test
+  prettier:
+    executor:
+      name: default
+    steps:
+      - checkout
+      - node/install-packages:
+          pkg-manager: yarn
+      - run:
+          name: Prettier
+          command: yarn run prettier ./src --check
+workflows:
+  test:
+    jobs:
+      - build
+      - test
+      - prettier

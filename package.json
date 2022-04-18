@@ -6,7 +6,8 @@
     "test:watch": "jest -w",
     "lint": "eslint src",
     "build": "node ./scripts/build.js && tsc --emitDeclarationOnly",
-    "prepublish-only": "npm run clean && npm run lint && npm run test && npm run build"
+    "prepublish-only": "npm run clean && npm run lint && npm run test && npm run build",
+    "prettify": "prettier --write ./src"
   },
   "main": "dist/wt.js",
   "module": "dist/wt.esm.js",
@@ -49,6 +50,7 @@
     "eslint-config-clutter": "^1.0.0-beta.3",
     "jest": "^27.2.5",
     "lodash": "^4.17.4",
+    "prettier": "^2.6.2",
     "react": "^17",
     "react-dom": "^17",
     "rimraf": "^2.5.4",
