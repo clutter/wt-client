@@ -52,7 +52,7 @@ const retrieveVisitorToken = (
 const retrievePageUUIDToken = () => retrieveFromCookie(PAGE_UUID_KEY);
 
 type WTConfig = {
-  cookies?: Cookies.CookieAttributes;
+  cookieOptions?: Cookies.CookieAttributes;
   trackerUrl?: string;
   trackerDomain?: string;
   stringifyOptions?: QS.IStringifyOptions;
@@ -128,7 +128,7 @@ export class WT {
 
   private emitter = new EventEmitter();
   private wtConfig: WTConfig = {
-    cookies: { expires: EXPIRES_IN_DAYS },
+    cookieOptions: { expires: EXPIRES_IN_DAYS },
   };
   private paramDefaults = {};
   private eventQueue: WTEvent[] = [];
@@ -144,7 +144,7 @@ export class WT {
 
   public initialize(config: WTConfig | ((config: WTConfig) => WTConfig)) {
     this.config(config);
-    if (this.wtConfig.cookies) {
+    if (this.wtConfig.cookieOptions) {
       this.getUUIDToken();
       this.getVisitorToken();
     }
@@ -152,7 +152,7 @@ export class WT {
 
   public getVisitorToken() {
     return retrieveVisitorToken(
-      this.wtConfig.cookies,
+      this.wtConfig.cookieOptions,
       this.context.location && this.context.location.search
     );
   }
