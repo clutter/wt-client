@@ -6,6 +6,7 @@ import {
   WTPayload,
   WTContext,
   PAGE_UUID_KEY,
+  WTEventParams,
 } from "../src/client";
 
 import { uuid } from "../src/utils";
@@ -37,7 +38,7 @@ class MockImage {
       loggedEvents.push(url);
       const query = url.split("?").pop();
       const parsed = QS.parse(query) as unknown as WTPayload;
-      if (parsed.events.some((e) => e.metadata.error)) {
+      if (parsed.events.some((e) => e.metadata?.error)) {
         if (this.onerror) {
           this.onerror();
         }
@@ -95,7 +96,7 @@ const waitFor = (time) => new Promise((resolve) => setTimeout(resolve, time));
 
 function runEvents(events, cb, timeOffset = 0) {
   setTimeout(() => {
-    events.forEach((event) => wt.track("event", event));
+    events.forEach((event: string | WTEventParams) => wt.track(event));
     setTimeout(() => {
       cb(parseLoggedEvents());
     }, LOAD_WAIT + DEBOUNCE_MIN_DEFAULT + BUFFER + timeOffset / 2);
@@ -125,11 +126,11 @@ describe("wt-tracker.", () => {
   });
 
   it("should load without error", (done) => {
-    wt.track("test", { hello: "world" });
+    wt.track({ hello: "world" });
     setTimeout(done, LOAD_WAIT + DEBOUNCE_MIN_DEFAULT + BUFFER);
   });
 
-  it("should log one call", (done) => {
+  it("works with event params as a hash", (done) => {
     const events = [{ hello: "world", url: HREF }];
     runEvents(events, (result) => {
       expect(result).toEqual([
@@ -139,6 +140,21 @@ describe("wt-tracker.", () => {
             hello: "world",
             url: HREF,
           },
+          page_uuid: pageUuid,
+          referrer: "test",
+          url: HREF,
+        },
+      ]);
+      done();
+    });
+  });
+
+  it("works with only event kind", (done) => {
+    const events = ["pageview"];
+    runEvents(events, (result) => {
+      expect(result).toEqual([
+        {
+          kind: "pageview",
           page_uuid: pageUuid,
           referrer: "test",
           url: HREF,
@@ -176,12 +192,12 @@ describe("wt-tracker.", () => {
 
   it("should enqueue calls while networking", () => {
     const events = [{ hello: "world", url: HREF }];
-    events.forEach((event) => wt.track("event", event));
+    events.forEach((event) => wt.track(event));
     wt.flush();
     // now loading
     return waitFor(LOAD_WAIT - 1)
       .then(() => {
-        events.forEach((event) => wt.track("event", event));
+        events.forEach((event) => wt.track(event));
       })
       .then(() => waitFor(1 + LOAD_WAIT + BUFFER + DEBOUNCE_MIN_DEFAULT))
       .then(() => {
@@ -269,7 +285,7 @@ describe("wt-tracker.", () => {
     for (let i = 0; i < 1000; i++) {
       events.push({ hello: "world", url: HREF });
     }
-    events.forEach((event) => wt.track("event", event));
+    events.forEach((event) => wt.track(event));
     wt.flush();
     setTimeout(() => {
       const eventQueueLength = wt["eventQueue"].length;
@@ -287,7 +303,7 @@ describe("wt-tracker.", () => {
     for (let i = 0; i < 10; i++) {
       events.push({ hello: "world", url: HREF });
     }
-    events.forEach((event) => wt.track("event", event));
+    events.forEach((event) => wt.track(event));
     wt.flush();
     setTimeout(() => {
       wt["sendToServer"] = () => {
