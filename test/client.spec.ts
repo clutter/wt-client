@@ -332,7 +332,7 @@ describe("wt-tracker.", () => {
 
   it("should have uuid set for event", () => {
     const currentConfig = wt["wtConfig"];
-    currentConfig.cookies = {};
+    currentConfig.cookieOptions = {};
     wt.initialize(currentConfig);
     wt.track("pageview");
     const events = wt["eventQueue"];
