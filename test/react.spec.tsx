@@ -1,8 +1,8 @@
-import React, { useEffect } from "react";
-import { render } from "@testing-library/react";
+import React, { useEffect, useRef, useState } from "react";
+import { act, render } from "@testing-library/react";
 
 import { createProvider } from "../src/react";
-import { WTEventParams } from "../src";
+import { WTEventParams } from "../src/client";
 
 type TestParams = WTEventParams & { name?: "Friedrich" | "Albert" | "Baruch" };
 const track = jest.fn<any, [TestParams]>();
@@ -155,6 +155,34 @@ describe("useTrack", () => {
       </WTProvider>
     );
     expect(track).toHaveBeenCalledWith({ name: "Baruch" });
+  });
+
+  it("returns a stable function", async () => {
+    const TrackOnRender = () => {
+      const track = useTrack();
+      const [count, setState] = useState(0);
+
+      useEffect(() => {
+        track({ position: count });
+      }, [track]);
+
+      return (
+        <>
+          <button onClick={() => setState((s) => s + 1)}>Render</button>
+        </>
+      );
+    };
+
+    const x = render(
+      <WTProvider params={{}}>
+        <TrackOnRender />
+      </WTProvider>
+    );
+
+    const trigger = await x.findByRole("button");
+    act(() => trigger.click());
+
+    expect(track).toBeCalledTimes(1);
   });
 });
 

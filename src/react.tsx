@@ -64,8 +64,16 @@ export const createProvider = <
   const useTrack = (defaultParams: Partial<Params> = {}) => {
     // eslint-disable-next-line @typescript-eslint/no-shadow
     const { track } = useContext(WTContext);
+    const paramsRef = useRef(defaultParams);
 
-    return (params: Partial<Params>) => track({ ...defaultParams, ...params });
+    useEffect(() => {
+      paramsRef.current = defaultParams;
+    });
+
+    return useCallback(
+      (params: Partial<Params>) => track({ ...paramsRef.current, ...params }),
+      [track]
+    );
   };
 
   const useWT = () => {
