@@ -1,4 +1,10 @@
-import React, { useCallback, useContext, useMemo, useRef } from "react";
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+} from "react";
 import { WTEventParams } from "./client";
 
 type ContextValue<Params = Record<string, any>> = {
