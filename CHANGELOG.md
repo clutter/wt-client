@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [v2.0.0] - Monday, April 18th, 2022
+
+- Port library to TypeScript
+- Refactor API
+  - Replace "string identified" actions with methods on a class (e.g. `wt('initialize')` becomes `wt.initialize()`)
+  - Refactor `track` API to remove ambiguity around `kind` property
+    - Events should be tracked either as a single string (e.g. `pageview`) or a hash which includes an optional `kind` property, defaulting to `event`.
+  - Rename inconsistent config options
+    - `cookies` -> `cookieOptions`
+
 ## [v1.2.1] - Friday, April 23, 2021
 
 - Send cookies in tracking request to preserve visitor association
