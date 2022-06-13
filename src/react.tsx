@@ -29,10 +29,10 @@ export const createProvider = <
     },
   });
 
-  const WTProvider: React.FC<{ params: Partial<Params> }> = ({
-    params,
-    children,
-  }) => {
+  const WTProvider: React.FC<{
+    children: React.ReactNode;
+    params: Partial<Params>;
+  }> = ({ params, children }) => {
     const paramRef = useRef(params);
     const { params: parentParams } = useContext(WTContext);
 
