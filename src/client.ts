@@ -109,6 +109,7 @@ export type WTEventParams = {
   position?: string | number;
   objectType?: string;
   objectName?: string;
+  metadata?: Record<string, any>;
   [metadataKey: string]: any;
 };
 
@@ -214,6 +215,7 @@ export class WT {
       position,
       objectType,
       objectName,
+      metadata,
       ...args
     } = params;
     this.eventQueue.push(
@@ -229,7 +231,7 @@ export class WT {
           position,
           object_type: objectType,
           object_name: objectName,
-          metadata: { ...this.paramDefaults, ...args },
+          metadata: { ...this.paramDefaults, ...metadata, ...args },
           ...this.getEventEnvironmentArgs(),
           ts: new Date().valueOf(),
         },
