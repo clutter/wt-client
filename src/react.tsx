@@ -4,8 +4,8 @@ import React, {
   useEffect,
   useMemo,
   useRef,
-} from "react";
-import { WTEventParams } from "./client";
+} from 'react';
+import { WTEventParams } from './client';
 
 type ContextValue<Params = Record<string, any>> = {
   params: React.RefObject<Partial<Params>>;
@@ -25,14 +25,14 @@ export const createProvider = <
   const WTContext = React.createContext<ContextValue<Params>>({
     params: { current: {} },
     track: () => {
-      throw new Error("No WTProvider found");
+      throw new Error('No WTProvider found');
     },
   });
 
   const WTProvider: React.FC<{
     children: React.ReactNode;
-    params: Partial<Params>;
-  }> = ({ params, children }) => {
+    params?: Partial<Params>;
+  }> = ({ params = {}, children }) => {
     const paramRef = useRef(params);
     const { params: parentParams } = useContext(WTContext);
 
