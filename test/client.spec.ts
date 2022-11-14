@@ -164,6 +164,22 @@ describe("wt-tracker.", () => {
     });
   });
 
+  it("merges metadata if provided directly as a param", (done) => {
+    const events = [{ metadata: { foo: "bar" }, baz: "qux" }];
+    runEvents(events, (result) => {
+      expect(result).toEqual([
+        {
+          kind: "event",
+          metadata: { foo: "bar", baz: "qux" },
+          page_uuid: pageUuid,
+          referrer: "test",
+          url: HREF,
+        },
+      ]);
+      done();
+    });
+  });
+
   it("should hit the event emitter", (done) => {
     const events = [{ hello: "world", url: HREF }];
     let touched = false;
