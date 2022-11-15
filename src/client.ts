@@ -1,13 +1,13 @@
-import QS from "qs";
-import Cookie from "js-cookie";
-import EventEmitter from "events";
-import { debounce, isFunction, omitBy, isNil, uuid } from "./utils";
+import QS from 'qs';
+import Cookie from 'js-cookie';
+import EventEmitter from 'events';
+import { debounce, isFunction, omitBy, isNil, uuid } from './utils';
 
 const DEBOUNCE_MIN_DEFAULT = 500;
 const DEBOUNCE_MAX_DEFAULT = 1500;
 
 const DEFAULT_STRINGIFY_OPTIONS = {
-  arrayFormat: "brackets",
+  arrayFormat: 'brackets',
   skipNulls: true,
   encode: true,
 } as const;
@@ -20,13 +20,13 @@ function resolveMethod<V>(val: V | ((...a: any[]) => V), ...args: any[]) {
   return isFunction(val) ? val(...args) : val;
 }
 
-export const SEND_STARTED = "send:started";
-export const SEND_COMPLETED = "send:completed";
-export const QUEUE_COMPLETED = "queue:completed";
-export const QUEUE_CONTINUED = "queue:continued";
+export const SEND_STARTED = 'send:started';
+export const SEND_COMPLETED = 'send:completed';
+export const QUEUE_COMPLETED = 'queue:completed';
+export const QUEUE_CONTINUED = 'queue:continued';
 
-export const VISITOR_TOKEN_KEY = "wt_visitor_token";
-export const PAGE_UUID_KEY = "wt_page_uuid";
+export const VISITOR_TOKEN_KEY = 'wt_visitor_token';
+export const PAGE_UUID_KEY = 'wt_page_uuid';
 
 function retrieveFromCookie(key: string, config: Cookie.CookieAttributes = {}) {
   let token = Cookie.get(key);
@@ -165,11 +165,11 @@ export class WT {
 
   public track(kindOrParams: string | WTEventParams) {
     const resolvedParams =
-      typeof kindOrParams === "string" ? { kind: kindOrParams } : kindOrParams;
+      typeof kindOrParams === 'string' ? { kind: kindOrParams } : kindOrParams;
 
     this.addToQueue({
       ...resolvedParams,
-      kind: resolvedParams.kind ?? "event",
+      kind: resolvedParams.kind ?? 'event',
     });
   }
 
@@ -282,10 +282,10 @@ export class WT {
     };
 
     fetch(`${this.getRoot()}/wt/t`, {
-      method: "POST",
-      credentials: "include",
+      method: 'POST',
+      credentials: 'include',
       headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
+        'Content-Type': 'application/x-www-form-urlencoded',
       },
       body: query,
     })
