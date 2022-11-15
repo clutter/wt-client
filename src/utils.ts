@@ -1,6 +1,6 @@
 /** @internal */
 export const isFunction = (val: any): val is (...args: any[]) => any =>
-  Object.prototype.toString.call(val) === "[object Function]";
+  Object.prototype.toString.call(val) === '[object Function]';
 
 /** @internal */
 export const debounce = <F extends (...args: any) => any>(
@@ -71,10 +71,10 @@ export const omitBy = <
 
 /** @internal */
 export const uuid = () =>
-  "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (character) => {
+  'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (character) => {
     /* eslint-disable no-bitwise, no-mixed-operators */
     const seed = (Math.random() * 16) | 0;
-    const value = character === "x" ? seed : (seed & 0x3) | 0x8;
+    const value = character === 'x' ? seed : (seed & 0x3) | 0x8;
     /* eslint-enable no-bitwise, no-mixed-operators */
 
     return value.toString(16);
