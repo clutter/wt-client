@@ -53,6 +53,9 @@ const retrievePageUUIDToken = () => retrieveFromCookie(PAGE_UUID_KEY);
 
 type WTConfig = {
   cookieOptions?: Cookies.CookieAttributes;
+  fetchConfig?: Omit<RequestInit, 'headers'> & {
+    headers?: Record<string, string>;
+  };
   trackerUrl?: string;
   trackerDomain?: string;
   stringifyOptions?: QS.IStringifyOptions;
@@ -287,10 +290,13 @@ export class WT {
     fetch(`${this.getRoot()}/wt/t`, {
       method: 'POST',
       credentials: 'include',
+      body: JSON.stringify(payload),
       headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
+        'Content-Type': 'text/plain',
+        ...this.wtConfig.fetchConfig?.headers,
       },
-      body: query,
+      keepalive: true,
+      ...this.wtConfig.fetchConfig,
     })
       .then(() => {
         resolve();
