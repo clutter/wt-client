@@ -5,14 +5,6 @@ import { debounce, isFunction, omitBy, isNil, uuid } from './utils';
 
 const DEBOUNCE_MIN_DEFAULT = 500;
 const DEBOUNCE_MAX_DEFAULT = 1500;
-
-const DEFAULT_STRINGIFY_OPTIONS = {
-  arrayFormat: 'brackets',
-  skipNulls: true,
-  encode: true,
-} as const;
-
-// global constants
 const BATCH_MAX = 100;
 const EXPIRES_IN_DAYS = 7300; // Expires in 20 years
 
@@ -56,9 +48,8 @@ type WTConfig = {
   fetchConfig?: Omit<RequestInit, 'headers'> & {
     headers?: Record<string, string>;
   };
-  trackerUrl?: string;
   trackerDomain?: string;
-  stringifyOptions?: QS.IStringifyOptions;
+  onError?: (payload: WTPayload) => void;
   debounce?: {
     min?: number;
     max?: number;
@@ -80,7 +71,7 @@ export type WTContext = {
   };
   innerWidth: number;
   innerHeight: number;
-  Image: typeof window.Image;
+  fetch: typeof window.fetch;
 };
 
 type WTEvent = {
@@ -139,7 +130,6 @@ export class WT {
   private eventQueue: WTEvent[] = [];
   private pageUuid: string | null = null;
   private context: WTContext;
-  private loaderImage: HTMLImageElement | undefined;
   private processEventsDebounced!: ReturnType<typeof debounce>;
 
   constructor(context: WTContext) {
@@ -219,10 +209,13 @@ export class WT {
       position,
       objectType,
       objectName,
-      metadata,
+      metadata: baseMetadata,
       schema,
       ...args
     } = params;
+
+    const metadata = { ...this.paramDefaults, ...baseMetadata, ...args };
+
     this.eventQueue.push(
       omitBy(
         {
@@ -237,7 +230,7 @@ export class WT {
           object_type: objectType,
           object_name: objectName,
           schema,
-          metadata: { ...this.paramDefaults, ...metadata, ...args },
+          metadata: Object.keys(metadata).length > 0 ? metadata : undefined,
           ...this.getEventEnvironmentArgs(),
           ts: new Date().valueOf(),
         },
@@ -245,17 +238,6 @@ export class WT {
       )
     );
     this.processEventsDebounced();
-  }
-
-  private getLoaderImage() {
-    return new this.context.Image();
-  }
-
-  private getUrl() {
-    if (this.wtConfig.trackerUrl) {
-      return this.wtConfig.trackerUrl;
-    }
-    return `${this.getRoot()}/track.gif`;
   }
 
   private getRoot() {
@@ -270,39 +252,25 @@ export class WT {
     resolve: () => void,
     reject: () => void
   ) {
-    this.loaderImage = this.loaderImage || this.getLoaderImage();
-    const query = QS.stringify(payload, {
-      addQueryPrefix: false,
-      ...(this.wtConfig.stringifyOptions || DEFAULT_STRINGIFY_OPTIONS),
-    });
-
-    this.loaderImage.onload = () => {
-      this.loaderImage!.onerror = null;
-      this.loaderImage!.onload = null;
-      resolve();
-    };
-    this.loaderImage.onerror = () => {
-      this.loaderImage!.onerror = null;
-      this.loaderImage!.onload = null;
-      reject();
-    };
-
-    fetch(`${this.getRoot()}/wt/t`, {
-      method: 'POST',
-      credentials: 'include',
-      body: JSON.stringify(payload),
-      headers: {
-        'Content-Type': 'text/plain',
-        ...this.wtConfig.fetchConfig?.headers,
-      },
-      keepalive: true,
-      ...this.wtConfig.fetchConfig,
-    })
-      .then(() => {
-        resolve();
+    this.context
+      .fetch(`${this.getRoot()}/wt/t`, {
+        method: 'POST',
+        credentials: 'include',
+        body: JSON.stringify(payload),
+        headers: {
+          'Content-Type': 'text/plain',
+          ...this.wtConfig.fetchConfig?.headers,
+        },
+        keepalive: true,
+        ...this.wtConfig.fetchConfig,
+      })
+      .then((response) => {
+        if (response.ok) resolve();
+        else throw new Error();
       })
       .catch(() => {
-        this.loaderImage!.src = `${this.getUrl()}?fallback=true&${query}`;
+        this.wtConfig.onError?.(payload);
+        reject();
       });
     this.emitter.emit(SEND_STARTED);
   }

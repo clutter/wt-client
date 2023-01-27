@@ -1,5 +1,3 @@
-import QS from 'qs';
-import { omit } from 'lodash';
 import {
   withContext,
   SEND_COMPLETED,
@@ -18,41 +16,9 @@ const DEBOUNCE_MIN_DEFAULT = 1;
 
 const HREF = 'https://www.test.url/test-path?hello=world&hi=mom';
 
-let loggedEvents: string[] = [];
+let loggedEvents: WTPayload['events'] = [];
 
-class MockImage {
-  _url: string | undefined;
-  _to: ReturnType<typeof setTimeout>;
-  onerror: undefined | (() => void);
-  onload: undefined | (() => void);
-
-  get src() {
-    return this._url;
-  }
-  set src(url) {
-    if (url === this._url) {
-      return;
-    }
-    clearTimeout(this._to);
-    this._to = setTimeout(() => {
-      loggedEvents.push(url);
-      const query = url.split('?').pop();
-      const parsed = QS.parse(query) as unknown as WTPayload;
-      if (parsed.events.some((e) => e.metadata?.error)) {
-        if (this.onerror) {
-          this.onerror();
-        }
-        return;
-      }
-      if (this.onload) {
-        this.onload();
-      }
-    }, LOAD_WAIT);
-    this._url = url;
-  }
-}
-
-const context = {
+const context: WTContext = {
   location: {
     hostname: 'www.test.url',
     href: HREF,
@@ -66,30 +32,21 @@ const context = {
   navigator: {
     userAgent: 'test agent',
   },
-  Image: MockImage,
-} as unknown as WTContext;
+  fetch: jest.fn(async (url, { body } = {}) => {
+    if (typeof body !== 'string') throw new Error('Invalid request body');
+    const parsed = JSON.parse(body);
+    loggedEvents.push(parsed.events);
+    if (parsed.events.some((e) => e.metadata?.error)) {
+      throw new Error('Event with error!');
+    }
+    return Promise.resolve({ ok: true } as any);
+  }),
+};
 
 let wt = withContext(context);
 
 const parseLoggedEvents = () => {
-  const parsedEvents = loggedEvents.map(
-    (url) => QS.parse(url.split('?').pop()) as unknown as WTPayload
-  );
-  const withoutTs = parsedEvents.map((parsedEvent) =>
-    omit(
-      {
-        ...parsedEvent,
-        events: parsedEvent.events.map((p) => omit(p, ['ts'])),
-      },
-      ['rts']
-    )
-  );
-  return withoutTs
-    .map((e) => e.events)
-    .reduce(
-      (memo, arr) => (Array.isArray(arr) ? [...memo, ...arr] : [...memo, arr]),
-      []
-    );
+  return loggedEvents.flat().map(({ ts, ...rest }) => rest);
 };
 
 const waitFor = (time) => new Promise((resolve) => setTimeout(resolve, time));
@@ -117,7 +74,6 @@ describe('wt-tracker.', () => {
     wt = withContext(context);
     wt.initialize({
       trackerUrl: 'pixel.test.url/pixel.gif',
-      stringifyOptions: {},
       debounce: {
         min: DEBOUNCE_MIN_DEFAULT,
       },
@@ -297,7 +253,7 @@ describe('wt-tracker.', () => {
     const wt = withContext(context);
 
     wt['sendToServer'] = () => waitFor(100);
-    const events = [];
+    const events: WTEventParams = [];
     for (let i = 0; i < 1000; i++) {
       events.push({ hello: 'world', url: HREF });
     }
@@ -315,7 +271,7 @@ describe('wt-tracker.', () => {
     const wt = withContext(context);
 
     wt['sendToServer'] = () => waitFor(1);
-    const events = [];
+    const events: WTEventParams = [];
     for (let i = 0; i < 10; i++) {
       events.push({ hello: 'world', url: HREF });
     }
@@ -341,15 +297,11 @@ describe('wt-tracker.', () => {
 
   it('should guess root url based on context', () => {
     wt.initialize({
-      trackerDomain: null,
-      trackerUrl: null,
+      trackerDomain: undefined,
+      trackerUrl: undefined,
     });
     let root = wt['getRoot']();
     expect(root).toEqual(`//${context.location.hostname}`);
-
-    let url = wt['getUrl']();
-    expect(url).toEqual(`//${context.location.hostname}/track.gif`);
-
     const trackerDomain = 'test.domain.com';
     wt.initialize({ trackerDomain });
     root = wt['getRoot']();
@@ -377,9 +329,6 @@ describe('wt-tracker.', () => {
 // TODO: write test to check cookie is properly set for wt_visitor_token and wt_page_uuid;
 describe('wt-visitor-token', () => {
   it('should favor the visitor token in the query string', () => {
-    const qs = QS.parse(context.location.search);
-    const wvt = qs.wvt;
-
-    expect(wt.getVisitorToken()).toBe(wvt);
+    expect(wt.getVisitorToken()).toBe('testvisitortoken');
   });
 });
