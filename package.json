@@ -15,7 +15,6 @@
   "dependencies": {
     "events": "^3.3.0",
     "js-cookie": "^2.2.0",
-    "qs": "^6.5.1",
     "whatwg-fetch": "^3.6.2"
   },
   "peerDependencies": {
@@ -41,7 +40,6 @@
     "@types/jest": "^27.0.2",
     "@types/js-cookie": "^3.0.0",
     "@types/lodash": "^4.14.175",
-    "@types/qs": "^6.9.7",
     "@types/react": "^18",
     "concurrently": "^3.5.1",
     "esbuild": "^0.14",
