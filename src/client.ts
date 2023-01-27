@@ -1,4 +1,3 @@
-import QS from 'qs';
 import Cookie from 'js-cookie';
 import EventEmitter from 'events';
 import { debounce, isFunction, omitBy, isNil, uuid } from './utils';
@@ -20,7 +19,7 @@ export const QUEUE_CONTINUED = 'queue:continued';
 export const VISITOR_TOKEN_KEY = 'wt_visitor_token';
 export const PAGE_UUID_KEY = 'wt_page_uuid';
 
-function retrieveFromCookie(key: string, config: Cookie.CookieAttributes = {}) {
+function findOrSetCookie(key: string, config: Cookie.CookieAttributes = {}) {
   let token = Cookie.get(key);
   if (!token) {
     token = uuid();
@@ -29,19 +28,15 @@ function retrieveFromCookie(key: string, config: Cookie.CookieAttributes = {}) {
   return token;
 }
 
-const retrieveFromQueryString = (search: string) => {
-  const qs = QS.parse(search, { ignoreQueryPrefix: true });
-  return qs.wvt as string | undefined;
-};
+const getQueryStringToken = (search: string) =>
+  new URLSearchParams(search).get('wvt') ?? undefined;
 
-const retrieveVisitorToken = (
+const getVisitorToken = (
   config: Cookie.CookieAttributes = {},
   search: string
-) =>
-  retrieveFromQueryString(search) ||
-  retrieveFromCookie(VISITOR_TOKEN_KEY, config);
+) => getQueryStringToken(search) || findOrSetCookie(VISITOR_TOKEN_KEY, config);
 
-const retrievePageUUIDToken = () => retrieveFromCookie(PAGE_UUID_KEY);
+const retrievePageUUIDToken = () => findOrSetCookie(PAGE_UUID_KEY);
 
 type WTConfig = {
   cookieOptions?: Cookies.CookieAttributes;
@@ -146,7 +141,7 @@ export class WT {
   }
 
   public getVisitorToken() {
-    return retrieveVisitorToken(
+    return getVisitorToken(
       this.wtConfig.cookieOptions,
       this.context.location && this.context.location.search
     );
@@ -283,7 +278,7 @@ export class WT {
       },
       agent: this.context.navigator.userAgent,
       rts: new Date().valueOf(),
-      wvt: retrieveFromQueryString(
+      wvt: getQueryStringToken(
         this.context.location && this.context.location.search
       ),
     };
