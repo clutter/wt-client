@@ -1,5 +1,5 @@
-import QS from "qs";
-import { omit } from "lodash";
+import QS from 'qs';
+import { omit } from 'lodash';
 import {
   withContext,
   SEND_COMPLETED,
@@ -7,16 +7,16 @@ import {
   WTContext,
   PAGE_UUID_KEY,
   WTEventParams,
-} from "../src/client";
+} from '../src/client';
 
-import { uuid } from "../src/utils";
-import Cookies from "js-cookie";
+import { uuid } from '../src/utils';
+import Cookies from 'js-cookie';
 
 const LOAD_WAIT = 10;
 const BUFFER = 10;
 const DEBOUNCE_MIN_DEFAULT = 1;
 
-const HREF = "https://www.test.url/test-path?hello=world&hi=mom";
+const HREF = 'https://www.test.url/test-path?hello=world&hi=mom';
 
 let loggedEvents: string[] = [];
 
@@ -36,7 +36,7 @@ class MockImage {
     clearTimeout(this._to);
     this._to = setTimeout(() => {
       loggedEvents.push(url);
-      const query = url.split("?").pop();
+      const query = url.split('?').pop();
       const parsed = QS.parse(query) as unknown as WTPayload;
       if (parsed.events.some((e) => e.metadata?.error)) {
         if (this.onerror) {
@@ -54,17 +54,17 @@ class MockImage {
 
 const context = {
   location: {
-    hostname: "www.test.url",
+    hostname: 'www.test.url',
     href: HREF,
-    search: "wvt=testvisitortoken",
+    search: 'wvt=testvisitortoken',
   },
   innerWidth: 0,
   innerHeight: 0,
   document: {
-    referrer: "test",
+    referrer: 'test',
   },
   navigator: {
-    userAgent: "test agent",
+    userAgent: 'test agent',
   },
   Image: MockImage,
 } as unknown as WTContext;
@@ -73,15 +73,15 @@ let wt = withContext(context);
 
 const parseLoggedEvents = () => {
   const parsedEvents = loggedEvents.map(
-    (url) => QS.parse(url.split("?").pop()) as unknown as WTPayload
+    (url) => QS.parse(url.split('?').pop()) as unknown as WTPayload
   );
   const withoutTs = parsedEvents.map((parsedEvent) =>
     omit(
       {
         ...parsedEvent,
-        events: parsedEvent.events.map((p) => omit(p, ["ts"])),
+        events: parsedEvent.events.map((p) => omit(p, ['ts'])),
       },
-      ["rts"]
+      ['rts']
     )
   );
   return withoutTs
@@ -108,7 +108,7 @@ global.fetch = jest.fn(() =>
   Promise.reject()
 ) as unknown as typeof window.fetch;
 
-describe("wt-tracker.", () => {
+describe('wt-tracker.', () => {
   const pageUuid = uuid();
 
   beforeEach(() => {
@@ -116,7 +116,7 @@ describe("wt-tracker.", () => {
     Cookies.set(PAGE_UUID_KEY, pageUuid);
     wt = withContext(context);
     wt.initialize({
-      trackerUrl: "pixel.test.url/pixel.gif",
+      trackerUrl: 'pixel.test.url/pixel.gif',
       stringifyOptions: {},
       debounce: {
         min: DEBOUNCE_MIN_DEFAULT,
@@ -125,23 +125,23 @@ describe("wt-tracker.", () => {
     wt.clear();
   });
 
-  it("should load without error", (done) => {
-    wt.track({ hello: "world" });
+  it('should load without error', (done) => {
+    wt.track({ hello: 'world' });
     setTimeout(done, LOAD_WAIT + DEBOUNCE_MIN_DEFAULT + BUFFER);
   });
 
-  it("works with event params as a hash", (done) => {
-    const events = [{ hello: "world", url: HREF }];
+  it('works with event params as a hash', (done) => {
+    const events = [{ hello: 'world', url: HREF }];
     runEvents(events, (result) => {
       expect(result).toEqual([
         {
-          kind: "event",
+          kind: 'event',
           metadata: {
-            hello: "world",
+            hello: 'world',
             url: HREF,
           },
           page_uuid: pageUuid,
-          referrer: "test",
+          referrer: 'test',
           url: HREF,
         },
       ]);
@@ -149,14 +149,14 @@ describe("wt-tracker.", () => {
     });
   });
 
-  it("works with only event kind", (done) => {
-    const events = ["pageview"];
+  it('works with only event kind', (done) => {
+    const events = ['pageview'];
     runEvents(events, (result) => {
       expect(result).toEqual([
         {
-          kind: "pageview",
+          kind: 'pageview',
           page_uuid: pageUuid,
-          referrer: "test",
+          referrer: 'test',
           url: HREF,
         },
       ]);
@@ -164,15 +164,15 @@ describe("wt-tracker.", () => {
     });
   });
 
-  it("merges metadata if provided directly as a param", (done) => {
-    const events = [{ metadata: { foo: "bar" }, baz: "qux" }];
+  it('merges metadata if provided directly as a param', (done) => {
+    const events = [{ metadata: { foo: 'bar' }, baz: 'qux' }];
     runEvents(events, (result) => {
       expect(result).toEqual([
         {
-          kind: "event",
-          metadata: { foo: "bar", baz: "qux" },
+          kind: 'event',
+          metadata: { foo: 'bar', baz: 'qux' },
           page_uuid: pageUuid,
-          referrer: "test",
+          referrer: 'test',
           url: HREF,
         },
       ]);
@@ -180,8 +180,8 @@ describe("wt-tracker.", () => {
     });
   });
 
-  it("should hit the event emitter", (done) => {
-    const events = [{ hello: "world", url: HREF }];
+  it('should hit the event emitter', (done) => {
+    const events = [{ hello: 'world', url: HREF }];
     let touched = false;
     const unsub = wt.subscribe(SEND_COMPLETED, () => {
       touched = true;
@@ -193,8 +193,8 @@ describe("wt-tracker.", () => {
     });
   });
 
-  it("should respect unsub", (done) => {
-    const events = [{ hello: "world", url: HREF }];
+  it('should respect unsub', (done) => {
+    const events = [{ hello: 'world', url: HREF }];
     let touched = false;
     const unsub = wt.subscribe(SEND_COMPLETED, () => {
       touched = true;
@@ -206,8 +206,8 @@ describe("wt-tracker.", () => {
     });
   });
 
-  it("should enqueue calls while networking", () => {
-    const events = [{ hello: "world", url: HREF }];
+  it('should enqueue calls while networking', () => {
+    const events = [{ hello: 'world', url: HREF }];
     events.forEach((event) => wt.track(event));
     wt.flush();
     // now loading
@@ -220,69 +220,69 @@ describe("wt-tracker.", () => {
         const parsedEvents = parseLoggedEvents();
         expect(parsedEvents).toEqual([
           {
-            kind: "event",
+            kind: 'event',
             metadata: {
-              hello: "world",
+              hello: 'world',
               url: HREF,
             },
             page_uuid: pageUuid,
-            referrer: "test",
+            referrer: 'test',
             url: HREF,
           },
           {
-            kind: "event",
+            kind: 'event',
             metadata: {
-              hello: "world",
+              hello: 'world',
               url: HREF,
             },
             page_uuid: pageUuid,
-            referrer: "test",
+            referrer: 'test',
             url: HREF,
           },
         ]);
       });
   });
 
-  it("should override metadata defaults with event data", (done) => {
+  it('should override metadata defaults with event data', (done) => {
     const events = [
-      { pageName: "Account", direction: "up" },
-      { objectName: "Box", objectType: "Button", meta: "new" },
+      { pageName: 'Account', direction: 'up' },
+      { objectName: 'Box', objectType: 'Button', meta: 'new' },
     ];
 
-    wt.set({ meta: "default", page_name: "Settings" });
+    wt.set({ meta: 'default', page_name: 'Settings' });
 
     runEvents(events, (result) => {
       expect(result).toEqual([
         {
-          kind: "event",
-          page_name: "Account",
+          kind: 'event',
+          page_name: 'Account',
           metadata: {
-            direction: "up",
-            meta: "default",
-            page_name: "Settings",
+            direction: 'up',
+            meta: 'default',
+            page_name: 'Settings',
           },
           url: HREF,
           page_uuid: pageUuid,
-          referrer: "test",
+          referrer: 'test',
         },
         {
-          kind: "event",
-          object_name: "Box",
-          object_type: "Button",
+          kind: 'event',
+          object_name: 'Box',
+          object_type: 'Button',
           metadata: {
-            meta: "new",
-            page_name: "Settings",
+            meta: 'new',
+            page_name: 'Settings',
           },
           url: HREF,
           page_uuid: pageUuid,
-          referrer: "test",
+          referrer: 'test',
         },
       ]);
       done();
     });
   });
 
-  it("should handle errors", (done) => {
+  it('should handle errors', (done) => {
     const events = [{ error: true }];
 
     runEvents(events, () => {
@@ -293,90 +293,90 @@ describe("wt-tracker.", () => {
 
   /* eslint-disable no-shadow */
 
-  it("should not double load", (done) => {
+  it('should not double load', (done) => {
     const wt = withContext(context);
 
-    wt["sendToServer"] = () => waitFor(100);
+    wt['sendToServer'] = () => waitFor(100);
     const events = [];
     for (let i = 0; i < 1000; i++) {
-      events.push({ hello: "world", url: HREF });
+      events.push({ hello: 'world', url: HREF });
     }
     events.forEach((event) => wt.track(event));
     wt.flush();
     setTimeout(() => {
-      const eventQueueLength = wt["eventQueue"].length;
-      wt["processEvents"]();
-      expect(eventQueueLength).toEqual(wt["eventQueue"].length);
+      const eventQueueLength = wt['eventQueue'].length;
+      wt['processEvents']();
+      expect(eventQueueLength).toEqual(wt['eventQueue'].length);
       done();
     }, 1);
   });
 
-  it("should process an empty queue", (done) => {
+  it('should process an empty queue', (done) => {
     const wt = withContext(context);
 
-    wt["sendToServer"] = () => waitFor(1);
+    wt['sendToServer'] = () => waitFor(1);
     const events = [];
     for (let i = 0; i < 10; i++) {
-      events.push({ hello: "world", url: HREF });
+      events.push({ hello: 'world', url: HREF });
     }
     events.forEach((event) => wt.track(event));
     wt.flush();
     setTimeout(() => {
-      wt["sendToServer"] = () => {
-        throw new Error("Should not call");
+      wt['sendToServer'] = () => {
+        throw new Error('Should not call');
       };
-      wt["processEvents"]();
+      wt['processEvents']();
       setTimeout(() => done(), 100);
     }, 100);
   });
 
   /* eslint-enable no-shadow */
 
-  it("should update config", () => {
-    const config = { trackerUrl: "https://google.com" };
+  it('should update config', () => {
+    const config = { trackerUrl: 'https://google.com' };
     wt.config(config);
 
-    expect(wt["wtConfig"].trackerUrl).toEqual(config.trackerUrl);
+    expect(wt['wtConfig'].trackerUrl).toEqual(config.trackerUrl);
   });
 
-  it("should guess root url based on context", () => {
+  it('should guess root url based on context', () => {
     wt.initialize({
       trackerDomain: null,
       trackerUrl: null,
     });
-    let root = wt["getRoot"]();
+    let root = wt['getRoot']();
     expect(root).toEqual(`//${context.location.hostname}`);
 
-    let url = wt["getUrl"]();
+    let url = wt['getUrl']();
     expect(url).toEqual(`//${context.location.hostname}/track.gif`);
 
-    const trackerDomain = "test.domain.com";
+    const trackerDomain = 'test.domain.com';
     wt.initialize({ trackerDomain });
-    root = wt["getRoot"]();
+    root = wt['getRoot']();
     expect(root).toEqual(trackerDomain);
   });
 
-  it("should update defaults with a function", () => {
-    const paramDefaults = { userId: "1" };
+  it('should update defaults with a function', () => {
+    const paramDefaults = { userId: '1' };
     wt.set(() => paramDefaults);
-    expect(paramDefaults).toEqual(wt["paramDefaults"]);
+    expect(paramDefaults).toEqual(wt['paramDefaults']);
   });
 
-  it("should have uuid set for event", () => {
-    const currentConfig = wt["wtConfig"];
+  it('should have uuid set for event', () => {
+    const currentConfig = wt['wtConfig'];
     currentConfig.cookieOptions = {};
     wt.initialize(currentConfig);
-    wt.track("pageview");
-    const events = wt["eventQueue"];
+    wt.track('pageview');
+    const events = wt['eventQueue'];
     expect(events[0].page_uuid).toMatch(/^\w{8}-\w{4}-\w{4}-\w{4}-\w{12}$/);
-    wt.track("event");
+    wt.track('event');
     expect(events[1].page_uuid).toMatch(/^\w{8}-\w{4}-\w{4}-\w{4}-\w{12}$/);
   });
 });
 
 // TODO: write test to check cookie is properly set for wt_visitor_token and wt_page_uuid;
-describe("wt-visitor-token", () => {
-  it("should favor the visitor token in the query string", () => {
+describe('wt-visitor-token', () => {
+  it('should favor the visitor token in the query string', () => {
     const qs = QS.parse(context.location.search);
     const wvt = qs.wvt;
 
