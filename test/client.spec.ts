@@ -117,22 +117,6 @@ describe('wt-tracker.', () => {
     });
   });
 
-  it('drops unknown top level params', (done) => {
-    const events = [{ metadata: { foo: 'bar' }, baz: 'qux' }];
-    runEvents(events, (result) => {
-      expect(result).toEqual([
-        {
-          kind: 'event',
-          metadata: { foo: 'bar' },
-          page_uuid: pageUuid,
-          referrer: 'test',
-          url: HREF,
-        },
-      ]);
-      done();
-    });
-  });
-
   it('should hit the event emitter', (done) => {
     const events = [{ hello: 'world', url: HREF }];
     let touched = false;
@@ -174,7 +158,6 @@ describe('wt-tracker.', () => {
         expect(parsedEvents).toEqual([
           {
             kind: 'event',
-
             object_name: 'world',
             page_uuid: pageUuid,
             referrer: 'test',
@@ -182,9 +165,7 @@ describe('wt-tracker.', () => {
           },
           {
             kind: 'event',
-
             object_name: 'world',
-
             page_uuid: pageUuid,
             referrer: 'test',
             url: HREF,
@@ -199,7 +180,7 @@ describe('wt-tracker.', () => {
       { objectName: 'Box', objectType: 'Button' },
     ];
 
-    wt.set({ meta: 'default', name: 'Settings' });
+    wt.set({ pageName: 'Settings', metadata: { user_id: 2 } });
 
     runEvents(events, (result) => {
       expect(result).toEqual([
@@ -207,8 +188,6 @@ describe('wt-tracker.', () => {
           kind: 'event',
           page_name: 'Account',
           metadata: {
-            meta: 'default',
-            name: 'Settings',
             user_id: 1,
           },
           url: HREF,
@@ -219,9 +198,9 @@ describe('wt-tracker.', () => {
           kind: 'event',
           object_name: 'Box',
           object_type: 'Button',
+          page_name: 'Settings',
           metadata: {
-            meta: 'default',
-            name: 'Settings',
+            user_id: 2,
           },
           url: HREF,
           page_uuid: pageUuid,

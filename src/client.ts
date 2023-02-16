@@ -1,6 +1,13 @@
 import Cookie from 'js-cookie';
 import EventEmitter from 'events';
-import { debounce, isFunction, omitBy, isNil, uuid } from './utils';
+import {
+  debounce,
+  isFunction,
+  omitBy,
+  isNil,
+  uuid,
+  snakeCaseKeys,
+} from './utils';
 
 const DEBOUNCE_MIN_DEFAULT = 500;
 const DEBOUNCE_MAX_DEFAULT = 1500;
@@ -120,7 +127,7 @@ export class WT {
   private wtConfig: WTConfig = {
     cookieOptions: { expires: EXPIRES_IN_DAYS },
   };
-  private paramDefaults = {};
+  private paramDefaults: WTEventParams = {};
   private eventQueue: WTEvent[] = [];
   private pageUuid: string | null = null;
   private context: WTContext;
@@ -169,7 +176,7 @@ export class WT {
     this.paramDefaults = {};
   }
 
-  public set(defaults: Record<string, any>) {
+  public set(defaults: WTEventParams) {
     this.paramDefaults = {
       ...this.paramDefaults,
       ...resolveMethod(defaults, this.paramDefaults, this),
@@ -192,41 +199,22 @@ export class WT {
   }
 
   private addToQueue(params: WTEventParams) {
-    const {
-      kind,
-      category,
-      action,
-      label,
-      value,
-      pageName,
-      container,
-      position,
-      objectType,
-      objectName,
-      metadata: baseMetadata,
-      schema,
-    } = params;
+    const { metadata: baseMetadata, ...baseParams } = params;
 
-    const metadata = { ...this.paramDefaults, ...baseMetadata };
+    const { metadata: { ...defaultMetadata } = {}, ...defaultParams } =
+      this.paramDefaults;
+
+    const metadata = { ...defaultMetadata, ...baseMetadata };
 
     this.eventQueue.push(
       omitBy(
-        {
-          kind,
-          category,
-          action,
-          label,
-          value,
-          page_name: pageName,
-          container,
-          position,
-          object_type: objectType,
-          object_name: objectName,
-          schema,
+        snakeCaseKeys({
+          ...defaultParams,
+          ...baseParams,
           metadata: Object.keys(metadata).length > 0 ? metadata : undefined,
           ...this.getEventEnvironmentArgs(),
           ts: new Date().valueOf(),
-        },
+        }) as WTEvent, // Cast required to handle the camel -> snake remapping, WTEventParams and WTEvent should be kept in sync
         isNil
       )
     );

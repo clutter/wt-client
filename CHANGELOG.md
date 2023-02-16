@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [v3.0.0] - Tuesday, Feb 16th, 2023
+
+- Send track requests as JSON encoded `text/plain` to bypass CORS restrictions
+- Add optional top level `schema` property
+- Remove image fallback in favor of only using fetch (breaking change in allowed options)
+- Require passing `metadata` key explicitly
+  - Types will now only allow known properties, although a user could still provide unknown keys if types are removed
+- Change `.set` API to allow setting both metadata and top level properties
+
 ## [v2.0.0] - Monday, April 18th, 2022
 
 - Port library to TypeScript
