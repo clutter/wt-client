@@ -82,20 +82,17 @@ describe('wt-tracker.', () => {
   });
 
   it('should load without error', (done) => {
-    wt.track({ hello: 'world' });
+    wt.track({ objectName: 'world' });
     setTimeout(done, LOAD_WAIT + DEBOUNCE_MIN_DEFAULT + BUFFER);
   });
 
   it('works with event params as a hash', (done) => {
-    const events = [{ hello: 'world', url: HREF }];
+    const events: WTEventParams[] = [{ objectName: 'world' }];
     runEvents(events, (result) => {
       expect(result).toEqual([
         {
           kind: 'event',
-          metadata: {
-            hello: 'world',
-            url: HREF,
-          },
+          object_name: 'world',
           page_uuid: pageUuid,
           referrer: 'test',
           url: HREF,
@@ -120,13 +117,13 @@ describe('wt-tracker.', () => {
     });
   });
 
-  it('merges metadata if provided directly as a param', (done) => {
+  it('drops unknown top level params', (done) => {
     const events = [{ metadata: { foo: 'bar' }, baz: 'qux' }];
     runEvents(events, (result) => {
       expect(result).toEqual([
         {
           kind: 'event',
-          metadata: { foo: 'bar', baz: 'qux' },
+          metadata: { foo: 'bar' },
           page_uuid: pageUuid,
           referrer: 'test',
           url: HREF,
@@ -163,7 +160,7 @@ describe('wt-tracker.', () => {
   });
 
   it('should enqueue calls while networking', () => {
-    const events = [{ hello: 'world', url: HREF }];
+    const events = [{ objectName: 'world' }];
     events.forEach((event) => wt.track(event));
     wt.flush();
     // now loading
@@ -177,20 +174,17 @@ describe('wt-tracker.', () => {
         expect(parsedEvents).toEqual([
           {
             kind: 'event',
-            metadata: {
-              hello: 'world',
-              url: HREF,
-            },
+
+            object_name: 'world',
             page_uuid: pageUuid,
             referrer: 'test',
             url: HREF,
           },
           {
             kind: 'event',
-            metadata: {
-              hello: 'world',
-              url: HREF,
-            },
+
+            object_name: 'world',
+
             page_uuid: pageUuid,
             referrer: 'test',
             url: HREF,
@@ -200,12 +194,12 @@ describe('wt-tracker.', () => {
   });
 
   it('should override metadata defaults with event data', (done) => {
-    const events = [
-      { pageName: 'Account', direction: 'up' },
-      { objectName: 'Box', objectType: 'Button', meta: 'new' },
+    const events: WTEventParams[] = [
+      { pageName: 'Account', metadata: { user_id: 1 } },
+      { objectName: 'Box', objectType: 'Button' },
     ];
 
-    wt.set({ meta: 'default', page_name: 'Settings' });
+    wt.set({ meta: 'default', name: 'Settings' });
 
     runEvents(events, (result) => {
       expect(result).toEqual([
@@ -213,9 +207,9 @@ describe('wt-tracker.', () => {
           kind: 'event',
           page_name: 'Account',
           metadata: {
-            direction: 'up',
             meta: 'default',
-            page_name: 'Settings',
+            name: 'Settings',
+            user_id: 1,
           },
           url: HREF,
           page_uuid: pageUuid,
@@ -226,8 +220,8 @@ describe('wt-tracker.', () => {
           object_name: 'Box',
           object_type: 'Button',
           metadata: {
-            meta: 'new',
-            page_name: 'Settings',
+            meta: 'default',
+            name: 'Settings',
           },
           url: HREF,
           page_uuid: pageUuid,
@@ -253,9 +247,9 @@ describe('wt-tracker.', () => {
     const wt = withContext(context);
 
     wt['sendToServer'] = () => waitFor(100);
-    const events: WTEventParams = [];
+    const events: WTEventParams[] = [];
     for (let i = 0; i < 1000; i++) {
-      events.push({ hello: 'world', url: HREF });
+      events.push({ objectName: 'world' });
     }
     events.forEach((event) => wt.track(event));
     wt.flush();
@@ -271,9 +265,9 @@ describe('wt-tracker.', () => {
     const wt = withContext(context);
 
     wt['sendToServer'] = () => waitFor(1);
-    const events: WTEventParams = [];
+    const events: WTEventParams[] = [];
     for (let i = 0; i < 10; i++) {
-      events.push({ hello: 'world', url: HREF });
+      events.push({ objectName: 'world' });
     }
     events.forEach((event) => wt.track(event));
     wt.flush();

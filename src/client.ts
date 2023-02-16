@@ -100,7 +100,6 @@ export type WTEventParams = {
   objectName?: string;
   metadata?: Record<string, any>;
   schema?: string;
-  [metadataKey: string]: any;
 };
 
 export type WTPayload = {
@@ -206,10 +205,9 @@ export class WT {
       objectName,
       metadata: baseMetadata,
       schema,
-      ...args
     } = params;
 
-    const metadata = { ...this.paramDefaults, ...baseMetadata, ...args };
+    const metadata = { ...this.paramDefaults, ...baseMetadata };
 
     this.eventQueue.push(
       omitBy(
