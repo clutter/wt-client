@@ -79,3 +79,10 @@ export const uuid = () =>
 
     return value.toString(16);
   });
+
+/** @internal */
+export const snakeCaseKeys = <T extends Record<string, any>>(obj: T) =>
+  Object.keys(obj).reduce<Record<string, any>>((acc, key) => {
+    acc[key.replace(/([a-z])([A-Z])/g, '$1_$2').toLowerCase()] = obj[key];
+    return acc;
+  }, {});
