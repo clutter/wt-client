@@ -6,8 +6,6 @@ const sharedConfig = {
   external: ["react"].concat(...Object.keys(deps)),
 };
 
-console.log(sharedConfig.external);
-
 const CONFIGS = [
   {
     ...sharedConfig,
