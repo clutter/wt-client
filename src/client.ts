@@ -107,6 +107,7 @@ export type WTEventParams = {
   objectName?: string;
   metadata?: Record<string, any>;
   schema?: string;
+  visitorToken?: string;
 };
 
 export type WTPayload = {
