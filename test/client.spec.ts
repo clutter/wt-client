@@ -73,7 +73,7 @@ describe('wt-tracker.', () => {
     Cookies.set(PAGE_UUID_KEY, pageUuid);
     wt = withContext(context);
     wt.initialize({
-      trackerUrl: 'pixel.test.url/pixel.gif',
+      trackerDomain: 'pixel.test.com',
       debounce: {
         min: DEBOUNCE_MIN_DEFAULT,
       },
@@ -262,16 +262,15 @@ describe('wt-tracker.', () => {
   /* eslint-enable no-shadow */
 
   it('should update config', () => {
-    const config = { trackerUrl: 'https://google.com' };
+    const config = { trackerDomain: 'https://google.com' };
     wt.config(config);
 
-    expect(wt['wtConfig'].trackerUrl).toEqual(config.trackerUrl);
+    expect(wt['wtConfig'].trackerDomain).toEqual(config.trackerDomain);
   });
 
   it('should guess root url based on context', () => {
     wt.initialize({
       trackerDomain: undefined,
-      trackerUrl: undefined,
     });
     let root = wt['getRoot']();
     expect(root).toEqual(`//${context.location.hostname}`);
@@ -282,8 +281,8 @@ describe('wt-tracker.', () => {
   });
 
   it('should update defaults with a function', () => {
-    const paramDefaults = { userId: '1' };
-    wt.set(() => paramDefaults);
+    const paramDefaults = { metadata: { userId: '1' } };
+    wt.set(paramDefaults);
     expect(paramDefaults).toEqual(wt['paramDefaults']);
   });
 
