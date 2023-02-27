@@ -16,7 +16,18 @@ const DEBOUNCE_MIN_DEFAULT = 1;
 
 const HREF = 'https://www.test.url/test-path?hello=world&hi=mom';
 
+const fetch = jest.fn<{}, [string, { body: string }]>(async (url, { body }) => {
+  if (typeof body !== 'string') throw new Error('Invalid request body');
+  lastPayload = JSON.parse(body);
+  loggedEvents.push(...lastPayload!.events);
+  if (lastPayload!.events.some((e) => e.metadata?.error)) {
+    throw new Error('Event with error!');
+  }
+  return Promise.resolve({ ok: true } as any);
+});
+
 let loggedEvents: WTPayload['events'] = [];
+let lastPayload: WTPayload;
 
 const context: WTContext = {
   location: {
@@ -32,15 +43,7 @@ const context: WTContext = {
   navigator: {
     userAgent: 'test agent',
   },
-  fetch: jest.fn(async (url, { body } = {}) => {
-    if (typeof body !== 'string') throw new Error('Invalid request body');
-    const parsed = JSON.parse(body);
-    loggedEvents.push(parsed.events);
-    if (parsed.events.some((e) => e.metadata?.error)) {
-      throw new Error('Event with error!');
-    }
-    return Promise.resolve({ ok: true } as any);
-  }),
+  fetch: fetch as any,
 };
 
 let wt = withContext(context);
@@ -51,19 +54,12 @@ const parseLoggedEvents = () => {
 
 const waitFor = (time) => new Promise((resolve) => setTimeout(resolve, time));
 
-function runEvents(events, cb, timeOffset = 0) {
+function runEvents(events, cb) {
+  events.forEach((event: string | WTEventParams) => wt.track(event));
   setTimeout(() => {
-    events.forEach((event: string | WTEventParams) => wt.track(event));
-    setTimeout(() => {
-      cb(parseLoggedEvents());
-    }, LOAD_WAIT + DEBOUNCE_MIN_DEFAULT + BUFFER + timeOffset / 2);
-  }, timeOffset / 2);
+    cb(parseLoggedEvents());
+  }, LOAD_WAIT + DEBOUNCE_MIN_DEFAULT + BUFFER);
 }
-
-// TODO: Rewrite specs to use fetch (this falls back to the image loader)
-global.fetch = jest.fn(() =>
-  Promise.reject()
-) as unknown as typeof window.fetch;
 
 describe('wt-tracker.', () => {
   const pageUuid = uuid();
@@ -296,11 +292,28 @@ describe('wt-tracker.', () => {
     wt.track('event');
     expect(events[1].page_uuid).toMatch(/^\w{8}-\w{4}-\w{4}-\w{4}-\w{12}$/);
   });
+
+  it('sends the visitor token if provided via config', () => {
+    wt.config({ visitorToken: 'new_token' });
+    wt.track('pageload');
+    wt.flush();
+    expect(JSON.parse(fetch.mock.calls[0][1].body).visitor_token).toBe(
+      'new_token'
+    );
+  });
 });
 
 // TODO: write test to check cookie is properly set for wt_visitor_token and wt_page_uuid;
 describe('wt-visitor-token', () => {
-  it('should favor the visitor token in the query string', () => {
+  it('favors the visitor token in the query string', () => {
+    const wt = withContext(context);
     expect(wt.getVisitorToken()).toBe('testvisitortoken');
+  });
+
+  it('favors the visitor token provided via config', () => {
+    const wt = withContext(context);
+    wt.config({ visitorToken: 'a_new_visitor_token' });
+
+    expect(wt.getVisitorToken()).toBe('a_new_visitor_token');
   });
 });

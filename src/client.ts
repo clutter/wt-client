@@ -47,6 +47,7 @@ const retrievePageUUIDToken = () => findOrSetCookie(PAGE_UUID_KEY);
 
 type WTConfig = {
   cookieOptions?: Cookies.CookieAttributes;
+  visitorToken?: string;
   fetchConfig?: Omit<RequestInit, 'headers'> & {
     headers?: Record<string, string>;
   };
@@ -107,10 +108,10 @@ export type WTEventParams = {
   objectName?: string;
   metadata?: Record<string, any>;
   schema?: string;
-  visitorToken?: string;
 };
 
 export type WTPayload = {
+  visitor_token?: string;
   events: WTEvent[];
   dimensions: {
     width: number;
@@ -148,9 +149,12 @@ export class WT {
   }
 
   public getVisitorToken() {
-    return getVisitorToken(
-      this.wtConfig.cookieOptions,
-      this.context.location && this.context.location.search
+    return (
+      this.wtConfig.visitorToken ||
+      getVisitorToken(
+        this.wtConfig.cookieOptions,
+        this.context.location && this.context.location.search
+      )
     );
   }
 
@@ -259,6 +263,7 @@ export class WT {
 
   private getRequestEnvironmentArgs() {
     return {
+      visitor_token: this.wtConfig.visitorToken,
       dimensions: {
         width: this.context.innerWidth,
         height: this.context.innerHeight,
