@@ -5,6 +5,7 @@ import {
   WTContext,
   PAGE_UUID_KEY,
   WTEventParams,
+  FailedFetchError,
 } from '../src/client';
 
 import { uuid } from '../src/utils';
@@ -13,6 +14,7 @@ import Cookies from 'js-cookie';
 const LOAD_WAIT = 10;
 const BUFFER = 10;
 const DEBOUNCE_MIN_DEFAULT = 1;
+const UNKNOWN_ERROR_MESSAGE = 'AN UNKNOWN ERROR!';
 
 const HREF = 'https://www.test.url/test-path?hello=world&hi=mom';
 
@@ -21,7 +23,10 @@ const fetch = jest.fn<{}, [string, { body: string }]>(async (url, { body }) => {
   lastPayload = JSON.parse(body);
   loggedEvents.push(...lastPayload!.events);
   if (lastPayload!.events.some((e) => e.metadata?.error)) {
-    throw new Error('Event with error!');
+    throw new Error(UNKNOWN_ERROR_MESSAGE);
+  }
+  if (lastPayload!.events.some((e) => e.metadata?.fetchStatus)) {
+    return Promise.resolve({ ok: false, status: 404 });
   }
   return Promise.resolve({ ok: true } as any);
 });
@@ -207,16 +212,43 @@ describe('wt-tracker.', () => {
     });
   });
 
-  it('should handle errors', (done) => {
-    const events = [{ error: true }];
+  it('should handle unknown errors', (done) => {
+    const events = [{ metadata: { error: true } }];
+    const onError = jest.fn();
+
+    wt.config({ onError });
 
     runEvents(events, () => {
       expect(wt.loading).toBe(false);
+      expect(onError).toHaveBeenCalledWith(
+        expect.objectContaining({ events: expect.any(Array) }),
+        expect.objectContaining({
+          message: UNKNOWN_ERROR_MESSAGE,
+        })
+      );
+      expect(onError.mock.calls[0][1]).toEqual(expect.any(Error));
       done();
     });
   });
 
-  /* eslint-disable no-shadow */
+  it('should report non-ok fetch responses', (done) => {
+    const events = [{ metadata: { fetchStatus: 404 } }];
+    const onError = jest.fn();
+
+    wt.config({ onError });
+
+    runEvents(events, () => {
+      expect(wt.loading).toBe(false);
+      expect(onError).toHaveBeenCalledWith(
+        expect.objectContaining({ events: expect.any(Array) }),
+        expect.objectContaining({
+          message: 'Failed to send events, status code: 404',
+        })
+      );
+      expect(onError.mock.calls[0][1]).toEqual(expect.any(FailedFetchError));
+      done();
+    });
+  });
 
   it('should not double load', (done) => {
     const wt = withContext(context);
@@ -254,8 +286,6 @@ describe('wt-tracker.', () => {
       setTimeout(() => done(), 100);
     }, 100);
   });
-
-  /* eslint-enable no-shadow */
 
   it('should update config', () => {
     const config = { trackerDomain: 'https://google.com' };

@@ -52,7 +52,7 @@ type WTConfig = {
     headers?: Record<string, string>;
   };
   trackerDomain?: string;
-  onError?: (payload: WTPayload) => void;
+  onError?: (payload: WTPayload, error: unknown) => void;
   debounce?: {
     min?: number;
     max?: number;
@@ -121,6 +121,8 @@ export type WTPayload = {
   rts: number;
   wvt: string | undefined;
 };
+
+export class FailedFetchError extends Error {}
 
 export class WT {
   public loading = false;
@@ -252,10 +254,14 @@ export class WT {
       })
       .then((response) => {
         if (response.ok) resolve();
-        else throw new Error();
+        else {
+          throw new FailedFetchError(
+            'Failed to send events, status code: ' + response.status
+          );
+        }
       })
-      .catch(() => {
-        this.wtConfig.onError?.(payload);
+      .catch((e) => {
+        this.wtConfig.onError?.(payload, e);
         reject();
       });
     this.emitter.emit(SEND_STARTED);

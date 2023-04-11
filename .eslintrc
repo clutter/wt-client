@@ -2,6 +2,7 @@
   "extends": "clutter",
   "ignorePatterns": ["test/**", "scripts/**", "dist/**"],
   "rules": {
-    "lines-between-class-members": "off"
+    "lines-between-class-members": "off",
+    "max-classes-per-file": "off"
   }
 }
