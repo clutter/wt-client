@@ -6,6 +6,22 @@ executors:
     docker:
       - image: cimg/node:21.7.1
 jobs:
+  deploy:
+    executor:
+      name: default
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - node/install-packages
+      - run:
+          name: Build
+          command: npm run build
+      - run:
+          name: Publish
+          command: |
+            npm set //registry.npmjs.org/:_authToken=$NPM_TOKEN
+            npm publish
   build:
     executor:
       name: default
@@ -41,3 +57,11 @@ workflows:
       - build
       - test
       - prettier
+      - deploy:
+          requires:
+            - test
+          filters:
+            branches:
+              only: main
+            tags:
+              only: /^v.*/
