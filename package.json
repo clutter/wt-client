@@ -7,6 +7,7 @@
     "lint": "eslint src",
     "build": "node ./scripts/build.js && tsc --emitDeclarationOnly",
     "prepublish-only": "npm run clean && npm run lint && npm run test && npm run build",
+    "prettier": "prettier ./src",
     "prettify": "prettier --write ./src"
   },
   "main": "dist/wt.js",

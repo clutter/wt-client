@@ -13,33 +13,28 @@ jobs:
       - checkout
       - attach_workspace:
           at: .
-      - node/install-packages:
-          pkg-manager: yarn
-      - run: yarn build
-      - persist_to_workspace:
-          root: .
-          paths:
-            - dist/
+      - node/install-packages
+      - run:
+          name: Build
+          command: npm run build
   test:
     executor:
       name: default
     steps:
       - checkout
-      - node/install-packages:
-          pkg-manager: yarn
+      - node/install-packages
       - run:
-          name: test
-          command: yarn run test
+          name: Test
+          command: npm run test
   prettier:
     executor:
       name: default
     steps:
       - checkout
-      - node/install-packages:
-          pkg-manager: yarn
+      - node/install-packages
       - run:
           name: Prettier
-          command: yarn run prettier ./src --check
+          command: npm run prettier -- --check
 workflows:
   test:
     jobs:
