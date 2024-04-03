@@ -18,7 +18,6 @@
     "whatwg-fetch": "^3.6.2"
   },
   "peerDependencies": {
-    "@types/react": "^18",
     "react": ">= 16"
   },
   "files": [
