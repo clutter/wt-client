@@ -1,12 +1,13 @@
 {
   "name": "@clutter/wt",
-  "version": "3.2.0",
+  "version": "3.3.0",
   "scripts": {
     "test": "jest",
     "test:watch": "jest -w",
     "lint": "eslint src",
     "build": "node ./scripts/build.js && tsc --emitDeclarationOnly",
     "prepublish-only": "npm run clean && npm run lint && npm run test && npm run build",
+    "prettier": "prettier ./src",
     "prettify": "prettier --write ./src"
   },
   "main": "dist/wt.js",
@@ -18,7 +19,6 @@
     "whatwg-fetch": "^3.6.2"
   },
   "peerDependencies": {
-    "@types/react": "^18",
     "react": ">= 16"
   },
   "files": [

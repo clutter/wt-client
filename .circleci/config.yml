@@ -1,11 +1,27 @@
 version: 2.1
 orbs:
-  node: circleci/node@5.0.2
+  node: circleci/node@5.2.0
 executors:
   default:
     docker:
-      - image: "cimg/node:17.9.0"
+      - image: cimg/node:21.7.1
 jobs:
+  deploy:
+    executor:
+      name: default
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - node/install-packages
+      - run:
+          name: Build
+          command: npm run build
+      - run:
+          name: Publish
+          command: |
+            npm set //registry.npmjs.org/:_authToken=$NPM_TOKEN
+            npm publish
   build:
     executor:
       name: default
@@ -13,36 +29,39 @@ jobs:
       - checkout
       - attach_workspace:
           at: .
-      - node/install-packages:
-          pkg-manager: yarn
-      - run: yarn build
-      - persist_to_workspace:
-          root: .
-          paths:
-            - dist/
+      - node/install-packages
+      - run:
+          name: Build
+          command: npm run build
   test:
     executor:
       name: default
     steps:
       - checkout
-      - node/install-packages:
-          pkg-manager: yarn
+      - node/install-packages
       - run:
-          name: test
-          command: yarn run test
+          name: Test
+          command: npm run test
   prettier:
     executor:
       name: default
     steps:
       - checkout
-      - node/install-packages:
-          pkg-manager: yarn
+      - node/install-packages
       - run:
           name: Prettier
-          command: yarn run prettier ./src --check
+          command: npm run prettier -- --check
 workflows:
   test:
     jobs:
       - build
       - test
       - prettier
+      - deploy:
+          requires:
+            - test
+          filters:
+            branches:
+              only: main
+            tags:
+              only: /^v.*/

@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## [v3.3.0] - Wednesday, April 3rd, 2024
+
+- Delete dependency on react 18 types
+
 ## [v3.0.0] - Tuesday, Feb 16th, 2023
 
 - Send track requests as JSON encoded `text/plain` to bypass CORS restrictions
