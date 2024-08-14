@@ -5,6 +5,14 @@
 [![build status](https://img.shields.io/circleci/project/github/clutter/wt-client.svg)](https://circleci.com/gh/clutter/wt-client)
 [![npm version](https://img.shields.io/npm/v/@clutter/wt.svg?style=flat-square)](https://www.npmjs.com/package/@clutter/wt)
 
+# Standalone
+
+`wt` can be used via unpkg with a standalone client that simply tracks a pageview:
+
+```html
+<script defer data-tracker-domain="https://pixel.clutter.com" data-cookie-domain=".clutter.com" src="https://unpkg.com/@clutter/wt@4.0.0/dist/script.js"></script>
+```
+
 # Installation
 
 The easiest way to install `wt` is through Yarn:
