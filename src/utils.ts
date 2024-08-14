@@ -6,7 +6,7 @@ export const isFunction = (val: any): val is (...args: any[]) => any =>
 export const debounce = <F extends (...args: any) => any>(
   fn: F,
   min: number,
-  { maxWait }: { maxWait?: number } = {}
+  { maxWait }: { maxWait?: number } = {},
 ) => {
   let minTo: number | undefined;
   let maxTo: number | undefined;
@@ -43,7 +43,7 @@ export const debounce = <F extends (...args: any) => any>(
         }
         return null;
       },
-    }
+    },
   );
 };
 /** @internal */
@@ -53,10 +53,10 @@ export const isNil = (val: any) => val === null || val === undefined;
 export const omitBy = <
   O extends Record<string, any>,
   K extends keyof O,
-  V extends O[K]
+  V extends O[K],
 >(
   obj: O,
-  fn: (value: V, key: K, obj: Record<K, V>) => boolean
+  fn: (value: V, key: K, obj: Record<K, V>) => boolean,
 ) =>
   Object.keys(obj).reduce(
     (memo, key) =>
@@ -66,7 +66,7 @@ export const omitBy = <
             ...memo,
             [key]: obj[key as K],
           },
-    {} as O
+    {} as O,
   );
 
 /** @internal */

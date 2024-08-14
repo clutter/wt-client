@@ -40,7 +40,7 @@ const getQueryStringToken = (search: string) =>
 
 const getVisitorToken = (
   config: Cookie.CookieAttributes = {},
-  search: string
+  search: string,
 ) => getQueryStringToken(search) || findOrSetCookie(VISITOR_TOKEN_KEY, config);
 
 const retrievePageUUIDToken = () => findOrSetCookie(PAGE_UUID_KEY);
@@ -155,7 +155,7 @@ export class WT {
       this.wtConfig.visitorToken ||
       getVisitorToken(
         this.wtConfig.cookieOptions,
-        this.context.location && this.context.location.search
+        this.context.location && this.context.location.search,
       )
     );
   }
@@ -222,8 +222,8 @@ export class WT {
           ...this.getEventEnvironmentArgs(),
           ts: new Date().valueOf(),
         }) as WTEvent, // Cast required to handle the camel -> snake remapping, WTEventParams and WTEvent should be kept in sync
-        isNil
-      )
+        isNil,
+      ),
     );
     this.processEventsDebounced();
   }
@@ -238,7 +238,7 @@ export class WT {
   private sendToServer(
     payload: WTPayload,
     resolve: () => void,
-    reject: () => void
+    reject: () => void,
   ) {
     this.context
       .fetch(`${this.getRoot()}/wt/t`, {
@@ -256,7 +256,7 @@ export class WT {
         if (response.ok) resolve();
         else {
           throw new FailedFetchError(
-            'Failed to send events, status code: ' + response.status
+            'Failed to send events, status code: ' + response.status,
           );
         }
       })
@@ -277,7 +277,7 @@ export class WT {
       agent: this.context.navigator.userAgent,
       rts: new Date().valueOf(),
       wvt: getQueryStringToken(
-        this.context.location && this.context.location.search
+        this.context.location && this.context.location.search,
       ),
     };
   }
@@ -328,7 +328,7 @@ export class WT {
       this.wtConfig.debounce?.min ?? DEBOUNCE_MIN_DEFAULT,
       {
         maxWait: this.wtConfig.debounce?.max ?? DEBOUNCE_MAX_DEFAULT,
-      }
+      },
     );
   }
 }
