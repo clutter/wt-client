@@ -17,10 +17,10 @@ type Options<Params> = {
 };
 
 export const createProvider = <
-  Params extends Record<string | number, any> = WTEventParams
+  Params extends Record<string | number, any> = WTEventParams,
 >(
   track: (params: Params) => void,
-  { validateEvent }: Options<Params> = {}
+  { validateEvent }: Options<Params> = {},
 ) => {
   const WTContext = React.createContext<ContextValue<Params>>({
     params: { current: {} },
@@ -53,7 +53,7 @@ export const createProvider = <
         track: localTrack,
         params: paramRef,
       }),
-      [localTrack]
+      [localTrack],
     );
 
     return (
@@ -72,7 +72,7 @@ export const createProvider = <
 
     return useCallback(
       (params: Partial<Params>) => track({ ...paramsRef.current, ...params }),
-      [track]
+      [track],
     );
   };
 

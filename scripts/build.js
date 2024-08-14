@@ -8,6 +8,15 @@ const sharedConfig = {
 
 const CONFIGS = [
   {
+    entryPoints: ["src/script.ts"],
+    define: { global: 'window' },
+    target: "es2020",
+    platform: "browser",
+    bundle: true,
+    minify: true,
+    outfile: "dist/script.js",
+  },
+  {
     ...sharedConfig,
     target: "esnext",
     bundle: true,
